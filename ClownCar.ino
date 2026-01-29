@@ -1,5 +1,5 @@
 /*
-* RT4K ClownCar v0.4f
+* RT4K ClownCar v0.4g
 * Copyright(C) 2026 @Donutswdad
 *
 * This program is free software: you can redistribute it and/or modify
@@ -461,7 +461,11 @@ void loadGameDB(){
 }
 
 void saveConsoles(){
-  File f = LittleFS.open("/consoles.json", FILE_WRITE);
+  File f = LittleFS.open("/consoles.tmp", "w");
+  if(!f){
+    Serial.println("Failed to open /consoles.tmp for writing");
+    return;
+  }
 
   JsonDocument doc;
   JsonArray arr = doc.to<JsonArray>();
@@ -476,6 +480,15 @@ void saveConsoles(){
 
   serializeJson(doc, f);
   f.close();
+
+  if(LittleFS.exists("/consoles.json")){
+    LittleFS.remove("/consoles.json");
+  }
+
+  if(!LittleFS.rename("/consoles.tmp", "/consoles.json")){
+    Serial.println("Failed to rename /consoles.tmp to /consoles.json");
+  }
+
 }
 
 void handleUpdateConsoles(){
@@ -501,6 +514,7 @@ void handleUpdateConsoles(){
   saveConsoles(); // save to LittleFS
   server.send(200, "application/json", "{\"status\":\"ok\"}");
 }
+
 
 String embedS0Vars(){
   JsonDocument doc;
@@ -841,7 +855,6 @@ void handleRoot() {
       descInput.type = 'text'; 
       descInput.value = c.Desc;
       descInput.onchange = async () => { 
-        if (!consoles[idx]) return;
         consoles[idx].Desc = descInput.value;
         await saveConsoles();
       };
@@ -855,21 +868,25 @@ void handleRoot() {
       addrInput.value = c.Address;
       addrInput.style.width = '87%';
       addrInput.onchange = async () => {
-          consoles[idx].Address = addrInput.value;  // update consoles array
-          await saveConsoles();                    // persist to server
+        consoles[idx].Address = addrInput.value;  
+        await saveConsoles();                    
       };
-
       tdAddr.appendChild(addrInput);
       tr.appendChild(tdAddr); 
 
-      // --- DefaultProf (No Match Profile column) ---
+      // --- DefaultProf ---
       const tdProf = document.createElement('td');
+      tdProf.classList.add('console-default-prof-cell');
       const profInput = document.createElement('input');
       profInput.type = 'number'; 
       profInput.value = c.DefaultProf;
+      profInput.classList.add('console-default-prof');
       profInput.onchange = async () => {
-        if (!consoles[idx]) return; 
         consoles[idx].DefaultProf = parseInt(profInput.value, 10) || 0; 
+        if (consoles[idx].King === 1) {
+          activeProfileNumber = consoles[idx].DefaultProf;
+          highlightProfileRow();
+        }
         await saveConsoles(); 
       };
       tdProf.appendChild(profInput); 
@@ -886,7 +903,7 @@ void handleRoot() {
       tbody.appendChild(tr);
     });
 
-    // --------- S0 row ----------
+    // --- S0 row ---
     const trS0 = document.createElement('tr');
     trS0.className = 's0-row';
 
@@ -905,7 +922,11 @@ void handleRoot() {
     const tdDescS0 = document.createElement('td');
     const labelSpan = document.createElement('span');
     labelSpan.textContent = "All Powered Off Profile: ";
-    labelSpan.style.fontWeight = '500';
+    labelSpan.classList.add('tooltip');
+    const bubble = document.createElement('span');
+    bubble.className = 'tooltip-bubble';
+    bubble.textContent = "Must have at least 1 Enabled and unreachable. Disabled do not count.";
+    labelSpan.appendChild(bubble);
     tdDescS0.appendChild(labelSpan);
 
     const s0profile = document.createElement('input'); 
@@ -921,6 +942,7 @@ void handleRoot() {
     tdDescS0.appendChild(s0profile); 
     trS0.appendChild(tdDescS0);
 
+    // fill empty tds for remaining columns
     ['', '', ''].forEach(() => {
       const td = document.createElement('td');
       td.style.backgroundColor = 'white';
@@ -933,12 +955,31 @@ void handleRoot() {
 
   async function saveConsoles() {
     updatingConsoles = true;
-    await fetch('/updateConsoles', {
-      method: 'POST',
-      body: JSON.stringify(consoles)
-    });
+
+    const payload = consoles.map(c => ({
+      Desc: c.Desc,
+      Address: c.Address,
+      DefaultProf: c.DefaultProf,
+      Enabled: c.Enabled
+    }));
+
+    try {
+      const res = await fetch('/updateConsoles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }, // <--- important
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        console.error('Failed to save consoles:', res.statusText);
+      }
+    } catch (err) {
+      console.error('Network error while saving consoles:', err);
+    }
+
     updatingConsoles = false;
   }
+
 
   async function addConsole() {
     consoles.push({
@@ -951,7 +992,7 @@ void handleRoot() {
     await saveConsoles();
     loadData();
   }
-
+  
   async function deleteConsole(idx) { 
     if (!confirm('Delete this console?')) return; 
 
@@ -1035,19 +1076,6 @@ void handleRoot() {
     });
     renderProfiles();
     updateArrows();
-  }
-
-    async function addProfile() { 
-    const response=await fetch("/getPayload"); 
-    const payload=await response.text(); 
-    gameProfiles.unshift(["CurrentGame",payload,"999"]); 
-    await fetch('/updateGameDB',{
-      method:'POST',
-      body:JSON.stringify(gameProfiles)
-      }
-    ); 
-    renderProfiles(); 
-    updateArrows(); 
   }
 
   async function deleteProfile(idx) {
@@ -1140,21 +1168,37 @@ void handleRoot() {
   // ---------------- INITIALIZE ----------------
   loadData();
 
+  // ---------------- AUTO REFRESH CONSOLES ----------------
   setInterval(async () => {
-    if (updatingConsoles) return; // skip refresh if updating
+    if (updatingConsoles) return; // skip refresh if user is editing
 
-    const res = await fetch('/getConsoles');
-    const updated = await res.json();
+    try {
+      const res = await fetch('/getConsoles');
+      const updated = await res.json();
 
-    updated.forEach((c, i) => {
-      if (consoles[i].On !== c.On || consoles[i].King !== c.King) {
-        consoles[i].On = c.On;
-        consoles[i].King = c.King;
-        updateStatusIcon(i);
+      // Sync the local consoles array with backend
+      for (let i = 0; i < Math.min(updated.length, consoles.length); i++) {
+        const local = consoles[i];
+        const remote = updated[i];
+
+        // Only update fields that the backend controls
+        local.On = remote.On;
+        local.Enabled = remote.Enabled;
+        local.King = remote.King;
+        local.Prof = remote.Prof;
+        // You can add more fields if needed
       }
-    });
-  }, 2500);
 
+      // If new consoles were added or removed, replace the array
+      if (updated.length !== consoles.length) {
+        consoles = updated;
+      }
+
+      consoles.forEach((c, i) => updateStatusIcon(i)); // Update icons
+    } catch (err) {
+      console.error("Error refreshing consoles:", err);
+    }
+  }, 2500);
 
   </script>
 
