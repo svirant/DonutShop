@@ -1,5 +1,5 @@
 /*
-* RT4K ClownCar v0.4g
+* RT4K ClownCar v0.4h
 * Copyright(C) 2026 @Donutswdad
 *
 * This program is free software: you can redistribute it and/or modify
@@ -383,6 +383,7 @@ void handleGetConsoles(){
         JsonObject obj = arr.add<JsonObject>();
         obj["Desc"] = consoles[i].Desc;
         obj["Address"] = consoles[i].Address;
+        obj["Prof"] = consoles[i].Prof;
         obj["On"] = consoles[i].On;
         obj["King"] = consoles[i].King;
         obj["DefaultProf"] = consoles[i].DefaultProf;
@@ -701,6 +702,18 @@ void handleRoot() {
       .leader-icon.on { background-color: #4CAF50; }
       .status-icon.on { background-color: #4CAF50; }
       .status-icon.off { background-color: red; }
+      .profile-match td {
+        background-color: #4CAF50;
+      }
+      .profile-match td input {
+
+
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .console-prof-cell-match {
+        background-color: #4CAF50;
+      }
 
     </style>
   </head>
@@ -797,6 +810,7 @@ void handleRoot() {
   </table>
 
   <script>
+  let activeProfileNumber = null;
   let updatingConsoles = false;
   let consoles = [];
   let gameProfiles = [];
@@ -886,6 +900,7 @@ void handleRoot() {
         if (consoles[idx].King === 1) {
           activeProfileNumber = consoles[idx].DefaultProf;
           highlightProfileRow();
+          highlightConsoleProfiles();
         }
         await saveConsoles(); 
       };
@@ -954,6 +969,7 @@ void handleRoot() {
   }
 
   async function saveConsoles() {
+    if (updatingConsoles) return;
     updatingConsoles = true;
 
     const payload = consoles.map(c => ({
@@ -1033,7 +1049,11 @@ void handleRoot() {
       const valInput = document.createElement('input');
       valInput.type = 'number';
       valInput.value = p[2];
-      valInput.onchange = async () =>  await saveProfiles();
+      valInput.onchange = async () => {
+        await saveProfiles();
+        highlightProfileRow();
+        highlightConsoleProfiles();
+      };
       tdVal.appendChild(valInput);
       tr.appendChild(tdVal);
 
@@ -1069,7 +1089,7 @@ void handleRoot() {
     const response = await fetch("/getPayload");
     const payload = await response.text();
     gameProfiles.sort((a,b) => 0);
-    gameProfiles.unshift(["CurrentGame", payload, "999"]);
+    gameProfiles.unshift(["Current Game", payload, "999"]);
     await fetch('/updateGameDB', {
       method: 'POST',
       body: JSON.stringify(gameProfiles)
@@ -1085,7 +1105,23 @@ void handleRoot() {
       method: 'POST',
       body: JSON.stringify(gameProfiles)
     });
-    loadData();
+
+    // loadData();
+
+    const resC = await fetch('/getConsoles');
+    consoles = await resC.json();
+
+    const resG = await fetch('/getGameDB');
+    gameProfiles = await resG.json();
+
+    renderConsoles();
+    consoles.forEach((c, i) => updateStatusIcon(i));
+
+    renderProfiles();
+
+    highlightProfileRow();
+    highlightConsoleProfiles();
+
   }
 
   // ---------------- SORTING ----------------
@@ -1128,29 +1164,51 @@ void handleRoot() {
     const input = td.querySelector('input');
     if (!input) return;
 
-    // Remove old icon if it exists
-    const oldIcon = td.querySelector('span');
-    if (oldIcon) td.removeChild(oldIcon);
+    const oldTip = td.querySelector('.tooltip');
+    if (oldTip) td.removeChild(oldTip);
 
-    // Create new icon based on current state
-    const icon = document.createElement('span');
     const c = consoles[idx];
+
+    const tip = document.createElement('span');
+    tip.className = 'tooltip';
+
+    const icon = document.createElement('span');
+    let tipText = '';
 
     if (c.On === 1 && c.King === 1) {
       icon.className = 'leader-icon on'; // diamond green
+      tipText = 'Leader console (active game source)';
     } else if (c.On === 1) {
       icon.className = 'status-icon on'; // circle green
+      tipText = 'Address is reachable.';
     } else {
       icon.className = 'status-icon off'; // circle red
+      tipText = 'Address is not reachable or Disabled.';
     }
 
-    // Insert icon before input
-    td.insertBefore(icon, input);
+    const bubble = document.createElement('span');
+    bubble.className = 'tooltip-bubble';
+
+    if (c.Prof > 0 && c.Prof < 30000) {
+      tipText += ` — Profile ${c.Prof}`;
+    }
+    else if (c.Prof < 0){
+      tipText += ` - Remote Button Profile ${c.Prof}`;
+    }
+
+    bubble.textContent = tipText;
+
+    tip.appendChild(icon);
+    tip.appendChild(bubble);
+
+    td.insertBefore(tip, input);
+
+    if (c.King === 1 && c.Prof !== undefined) {
+      activeProfileNumber = parseInt(c.Prof, 10);
+      highlightProfileRow();
+      highlightConsoleProfiles();
+    }
   }
-
-
-
-
 
   // ---------------- S0 HANDLERS ----------------
   function updateS0GameID(cb) { 
@@ -1168,7 +1226,6 @@ void handleRoot() {
   // ---------------- INITIALIZE ----------------
   loadData();
 
-  // ---------------- AUTO REFRESH CONSOLES ----------------
   setInterval(async () => {
     if (updatingConsoles) return; // skip refresh if user is editing
 
@@ -1194,11 +1251,63 @@ void handleRoot() {
         consoles = updated;
       }
 
+      // Update icons and highlights
       consoles.forEach((c, i) => updateStatusIcon(i)); // Update icons
+
+      // Track King console
+      const king = consoles.find(c => c.King === 1);
+      activeProfileNumber = king ? parseInt(king.Prof || 0, 10) : null;
+
+      highlightProfileRow();
+      highlightConsoleProfiles();
+
     } catch (err) {
       console.error("Error refreshing consoles:", err);
     }
   }, 2500);
+
+  // ---------------- SAFE HIGHLIGHT FUNCTIONS ----------------
+  function highlightProfileRow() {
+    const rows = document.querySelectorAll('#profileTable tbody tr');
+
+    rows.forEach(row => {
+      row.classList.remove('profile-match');
+
+      const valInput = row._val;
+      if (!valInput) return;
+
+      const profNum = parseInt(valInput.value, 10);
+
+      // Only highlight gameDB if activeProfileNumber does NOT match any console DefaultProf
+      const consoleMatch = consoles.some(c => parseInt(c.DefaultProf, 10) === activeProfileNumber);
+      if (!consoleMatch && profNum === activeProfileNumber) {
+        row.classList.add('profile-match');
+      }
+    });
+  }
+
+  function highlightConsoleProfiles() {
+    const rows = document.querySelectorAll('#consoleTable tbody tr');
+
+    rows.forEach((row, i) => {
+      const cell = row.children[3]; // DefaultProf column
+      if (!cell) return;
+
+      const input = cell.querySelector('input');
+      if (!input) return;
+
+      // Reset background
+      cell.style.backgroundColor = '';
+
+      const c = consoles[i];
+      if (!c) return;
+
+      // Highlight if DefaultProf matches activeProfileNumber
+      if (parseInt(c.DefaultProf, 10) === activeProfileNumber) {
+        cell.style.backgroundColor = '#4CAF50';
+      }
+    });
+  }
 
   </script>
 
