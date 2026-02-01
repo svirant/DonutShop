@@ -1,5 +1,5 @@
 /*
-* RT4K ClownCar v0.4i
+* RT4K ClownCar v0.4j
 * Copyright(C) 2026 @Donutswdad
 *
 * This program is free software: you can redistribute it and/or modify
@@ -892,6 +892,7 @@ void handleRoot() {
   </table>
 
   <script>
+  let refreshInterval = null;
   let activeProfileNumber = null;
   let updatingConsoles = false;
   let consoles = [];
@@ -1308,7 +1309,7 @@ void handleRoot() {
   // ---------------- INITIALIZE ----------------
   loadData();
 
-  setInterval(async () => {
+  refreshInterval = setInterval(async () => {
     if (updatingConsoles) return; // skip refresh if user is editing
 
     try {
@@ -1398,21 +1399,37 @@ void handleRoot() {
   function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
+
+    //Pause background polling during import
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+      refreshInterval = null;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       fetch('/importAll', {
         method: 'POST',
         body: reader.result,
         headers: {'Content-Type': 'application/json'}
-      }).then(resp => {
+      })
+      .then(resp => {
         if (!resp.ok) throw new Error("Import failed");
         alert('Import successful!');
-        window.location.reload();
+        window.location.reload(); // reload restarts interval cleanly
       })
-        .catch(err => alert('Import failed: ' + err));
+      .catch(err => {
+        alert('Import failed: ' + err);
+
+        //Resume polling if import fails
+        if (!refreshInterval) {
+          refreshInterval = setInterval(() => location.reload(), 2500);
+        }
+      });
     };
     reader.readAsText(file);
   }
+
 
   </script>
 
