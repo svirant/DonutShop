@@ -1,5 +1,5 @@
 /*
-* RT4K ClownCar v0.4h
+* RT4K ClownCar v0.4i
 * Copyright(C) 2026 @Donutswdad
 *
 * This program is free software: you can redistribute it and/or modify
@@ -180,6 +180,9 @@ void setup(){
   server.on("/getS0Vars", HTTP_GET, handleGetS0Vars);
   server.on("/updateS0Vars", HTTP_POST, handleUpdateS0Vars);
   server.on("/getPayload", HTTP_GET, handleGetPayload);
+  server.on("/exportAll", HTTP_GET, handleExportAll);
+  server.on("/importAll", HTTP_POST, handleImportAll);
+
 
   server.begin();  
 
@@ -498,7 +501,8 @@ void handleUpdateConsoles(){
     return;
   }
 
-  JsonDocument doc; deserializeJson(doc, server.arg("plain"));
+  JsonDocument doc;
+  deserializeJson(doc, server.arg("plain"));
 
   JsonArray arr = doc.as<JsonArray>();
 
@@ -604,6 +608,71 @@ void handleGetPayload(){
   server.send(200, "text/plain", payload);
 }
 
+void handleImportAll() {
+  if (!server.hasArg("plain")) {
+    server.send(400, "application/json", "{\"error\":\"No data\"}");
+    return;
+  }
+
+  JsonDocument doc;
+  deserializeJson(doc, server.arg("plain"));
+
+  // Restore consoles
+  JsonArray consolesArr = doc["consoles"].as<JsonArray>();
+  consolesSize = 0;
+  for (JsonObject o : consolesArr) {
+    consoles[consolesSize].Desc = o["Desc"].as<String>();
+    consoles[consolesSize].Address = o["Address"].as<String>();
+    consoles[consolesSize].DefaultProf = o["DefaultProf"].as<int>();
+    consoles[consolesSize].Enabled = o["Enabled"].as<bool>();
+    consolesSize++;
+  }
+  saveConsoles();
+
+  // Restore gameDB
+  JsonArray gameArr = doc["gameDB"].as<JsonArray>();
+  gameDBSize = 0;
+  for (JsonArray item : gameArr) {
+    gameDB[gameDBSize][0] = item[0].as<String>();
+    gameDB[gameDBSize][1] = item[1].as<String>();
+    gameDB[gameDBSize][2] = item[2].as<String>();
+    gameDBSize++;
+  }
+  saveGameDB();
+
+  server.send(200, "application/json", "{\"status\":\"ok\"}");
+}
+
+void handleExportAll() {
+  JsonDocument doc;
+
+  // consoles.json
+  JsonArray consolesArr = doc.createNestedArray("consoles");
+  for (int i = 0; i < consolesSize; i++) {
+    JsonObject o = consolesArr.createNestedObject();
+    o["Desc"] = consoles[i].Desc;
+    o["Address"] = consoles[i].Address;
+    o["DefaultProf"] = consoles[i].DefaultProf;
+    o["Enabled"] = consoles[i].Enabled;
+  }
+
+  // gameDB.json
+  JsonArray gameArr = doc.createNestedArray("gameDB");
+  for (int i = 0; i < gameDBSize; i++) {
+    JsonArray item = gameArr.createNestedArray();
+    item.add(gameDB[i][0]);
+    item.add(gameDB[i][1]);
+    item.add(gameDB[i][2]);
+  }
+
+  String out;
+  serializeJsonPretty(doc, out);
+  server.sendHeader("Content-Disposition", "attachment; filename=clowncar_config.json");
+  server.send(200, "application/json", out);
+}
+
+
+
 void handleRoot() {
   String page = R"rawliteral(
   <!DOCTYPE html>
@@ -629,6 +698,15 @@ void handleRoot() {
       #consoleTable th:nth-child(3),
       #consoleTable td:nth-child(3) {
          width: 320px;
+      }
+      .topbar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        padding: 8px;
+      }
+      button {
+        margin-left: 4px;
       }
 
       /* ---------- TOOLTIP SYSTEM ---------- */
@@ -718,7 +796,11 @@ void handleRoot() {
     </style>
   </head>
   <body>
-
+    <div class="topbar">
+      <input type="file" id="importJson" style="display:none" accept=".json" onchange="importData(event)">
+      <button onclick="document.getElementById('importJson').click()">Import Config</button>
+      <button onclick="exportData()">Export Config</button>
+    </div>
   <center><h1>Clown Car</h1></center>
 
   <div class="controls">
@@ -1307,6 +1389,29 @@ void handleRoot() {
         cell.style.backgroundColor = '#4CAF50';
       }
     });
+  }
+
+  function exportData() {
+    window.open('/exportAll', '_blank');
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      fetch('/importAll', {
+        method: 'POST',
+        body: reader.result,
+        headers: {'Content-Type': 'application/json'}
+      }).then(resp => {
+        if (!resp.ok) throw new Error("Import failed");
+        alert('Import successful!');
+        window.location.reload();
+      })
+        .catch(err => alert('Import failed: ' + err));
+    };
+    reader.readAsText(file);
   }
 
   </script>
