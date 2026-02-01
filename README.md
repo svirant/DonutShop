@@ -1,7 +1,7 @@
 # ClownCar
 Clown Car is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based on gameID. <br />
 
-<img width="500" src=https://github.com/user-attachments/assets/4a560cfe-95f1-4e88-9f77-3f6dc569a9a4><br />
+<img width="500" src="./images/1cc.JPG"><br />
 
 
 
@@ -57,7 +57,7 @@ I recommend the [Official Arduino IDE and guide](https://www.arduino.cc/en/Guide
    
 
 **To put the Nano ESP32 into programming mode** 
- - Double-click the button on top right after connecting the usb-c cable.
+ - Double-click the button on top right after connecting the usb-c cable. (or triple-click w/o disconnecting)
  - You will see the <code style="color : green">GREEN</code> led strobe if successful.
  - TLDR is: Because ClownCar takes over the usb port, this resets that.
 
@@ -77,7 +77,7 @@ Requires you to short the B1 and Gnd pins during one of the steps. This method i
 5. THIS WILL FAIL the first time. Wait about 15 seconds and then go back and select the new "Serial" port that is available and select "Burn Bootloader" again. 
 6. This should successfully burn the bootloader and now your board will have a half red/blue led that is lit.
 7. Disconnect the usb cable and short the B1 pin with the Gnd pin next to it. I used some metal tweezers.
-<img width="322" height="480" alt="Image" src="https://github.com/user-attachments/assets/5787fe6e-1e16-4092-8a72-68d8a5f2703f" />
+<img width="322" height="480" alt="Image" src="./images/2cc.JPG" />
 
 8. With B1 and Gnd shorted, reconnect the usb cable and the led should now be a solid Green.
 9. Return to the Arduino IDE and select "Sketch", "Upload Using Programmer". Make sure to use THIS option and NOT the normal "Upload" option.
@@ -107,28 +107,8 @@ Go to: https://github.com/wakwak-koba/EspUsbHost
 
 ## Adding gameIDs, Consoles, and other Options
 
-The new Web UI allows you to live update the Consoles and gameID table. You no longer have to reflash for changes. An export/import feature is on the radar so web ui changes can be saved.
+The new Web UI allows you to live update the Consoles and gameID table. You no longer have to reflash for changes. You can also now import and export your config if anything were to happen and you need to rebuild.
 
-Edit the .ino file to include your gameID addresses and gameID to SVS profile matches. Chances are if this isn't done correctly, it won't compile... which is a good way to find out. :)
-```
-                                 // {"<GAMEID>","SVS PROFILE #"},
-String gameDB[][2] = {{"00000000-00000000---00","7"}, // 7 is the "SVS PROFILE", would translate to a S7_<USER_DEFINED>.rt4 named profile under RT4K-SDcard/profile/SVS/
-                      {"XSTATION","8"},               // XSTATION is the <GAMEID>
-                      {"3E5055B6-2E92DA52-N-45","501"}, // N64 MarioKart 64
-                      {"635A2BFF-8B022326-N-45","502"}, // N64 Mario 64
-                      {"DCBC50D1-09FD1AA3-N-45","503"}, // N64 Goldeneye 007
-                      {"492F4B61-04E5146A-N-45","504"}, // N64 Wave Race 64
-                      {"SLUS-00214","10"}, // PS1 Ridge Racer Revolution
-                      {"SCUS-94300","9"}}; // PS1 Ridge Racer
-
-
-// format as so: {console address, Default Profile for console (choose a SVS profile #), current profile state (leave 0), power state (leave 0), active state (leave 0)}
-Console consoles[] = {{"http://ps1digital.local/gameid",103,0,0,0}, // you can add more, but stay in this format
-                      {"http://10.0.1.53/api/currentState",101,0,0,0},
-                   // {"http://ps2digital.local/gameid",102,0,0,0}, // remove leading "//" to uncomment and enable ps2digital
-                   // {"http://10.0.0.14/api/currentState",104,0,0,0}, // address format for MemCardPro. replace IP address with your MCP address
-                      {"http://n64digital.local/gameid",105,0,0,0} // the last one in the list has no "," at the end
-                      };
 
 /*
 ////////////////////
@@ -154,6 +134,8 @@ WiFi.begin("SSID","password");
   - Huge thanks to @CielFricker249 / "Aru" on the RetroTink discord for the idea and testing of the Donut Dongle project as well!
 
 ## TroubleShooting ##
+
+If only the red status and power led are red, and you can ping the device but not access the web ui, the SPIFFS partition has not been configured. Make sure to follow the steps above to ensure the bootloader has been burned and device flashed properly the first time.
 
 The <code style="color : green">GREEN</code> and <code style="color : blue">BLUE</code> leds indicate WiFi and usb serial/gameID lookup respectively. This should help diagnose as a first step.
 
