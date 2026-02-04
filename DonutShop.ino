@@ -1,5 +1,5 @@
 /*
-* RT4K DonutShop v0.4k
+* RT4K DonutShop v0.4l
 * Copyright(C) 2026 @Donutswdad
 *
 * This program is free software: you can redistribute it and/or modify
@@ -377,11 +377,14 @@ void sendProfile(int num){
     Serial0.println(F("\r"));
   }
   analogWrite(LED_GREEN,255);
-}
+} 
+
+// --------------------- WEB UI FUNCTIONS --------------------- //
 
 void handleGetConsoles(){
     JsonDocument doc;
     JsonArray arr = doc.to<JsonArray>();
+
     for(int i=0;i<consolesSize;i++){
         JsonObject obj = arr.add<JsonObject>();
         obj["Desc"] = consoles[i].Desc;
@@ -395,7 +398,7 @@ void handleGetConsoles(){
 
     String out; serializeJson(doc,out);
     server.send(200,"application/json",out);
-}
+} // end of handleGetConsoles()
 
 void handleGetGameDB(){
     JsonDocument doc;
@@ -408,7 +411,7 @@ void handleGetGameDB(){
     }
     String out; serializeJson(doc,out);
     server.send(200,"application/json",out);
-}
+} // end of handleGetGameDB()
 
 void saveGameDB(){
   File f = LittleFS.open("/gameDB.json", FILE_WRITE);
@@ -424,7 +427,7 @@ void saveGameDB(){
 
   serializeJson(doc, f);
   f.close();
-}
+} // end of saveGameDB()
 
 void handleUpdateGameDB(){
   if(!server.hasArg("plain")){
@@ -445,7 +448,7 @@ void handleUpdateGameDB(){
 
   saveGameDB();
   server.send(200, "application/json", "{\"status\":\"ok\"}");
-}
+} // end of handleUpdateGameDB()
 
 void loadGameDB(){
   if(!LittleFS.exists("/gameDB.json")) return; // if file does not exist yet, load from .ino
@@ -462,7 +465,7 @@ void loadGameDB(){
     gameDB[gameDBSize][2] = item[2].as<String>();
     gameDBSize++;
   }
-}
+} // end of loadGameDB()
 
 void saveConsoles(){
   File f = LittleFS.open("/consoles.tmp", "w");
@@ -488,12 +491,10 @@ void saveConsoles(){
   if(LittleFS.exists("/consoles.json")){
     LittleFS.remove("/consoles.json");
   }
-
   if(!LittleFS.rename("/consoles.tmp", "/consoles.json")){
     Serial.println("Failed to rename /consoles.tmp to /consoles.json");
   }
-
-}
+} // end of saveConsoles()
 
 void handleUpdateConsoles(){
   if(!server.hasArg("plain")){
@@ -518,8 +519,7 @@ void handleUpdateConsoles(){
 
   saveConsoles(); // save to LittleFS
   server.send(200, "application/json", "{\"status\":\"ok\"}");
-}
-
+} // end of handleUpdateConsoles()
 
 String embedS0Vars(){
   JsonDocument doc;
@@ -531,7 +531,7 @@ String embedS0Vars(){
   serializeJson(doc, json);
 
   return "let S0Vars = " + json + ";";
-}
+} // end of embedS0Vars()
 
 void handleUpdateS0Vars(){
   if(!server.hasArg("plain")){
@@ -547,7 +547,7 @@ void handleUpdateS0Vars(){
 
   saveS0Vars();
   server.send(200, "text/plain", "OK");
-}
+} // end of handleUpdateS0Vars()
 
 void saveS0Vars(){
   JsonDocument doc;
@@ -560,7 +560,7 @@ void saveS0Vars(){
 
   serializeJson(doc, f);
   f.close();
-}
+} // end of saveS0Vars()
 
 void loadS0Vars(){
   if (!LittleFS.exists("/s0vars.json")) return; // if file does not exist yet, load from .ino
@@ -572,7 +572,7 @@ void loadS0Vars(){
   S0_gameID = doc["S0_gameID"].as<bool>();
   S0_pwr = doc["S0_pwr"].as<bool>();
   S0_pwr_profile = doc["S0_pwr_profile"].as<int>();
-}
+} // end of loadS0Vars()
 
 void handleGetS0Vars(){
   JsonDocument doc;
@@ -584,7 +584,7 @@ void handleGetS0Vars(){
   String out;
   serializeJson(doc, out);
   server.send(200, "application/json", out);
-}
+} // end of handleGetS0Vars()
 
 void loadConsoles(){
   if(!LittleFS.exists("/consoles.json")) return; // if file does not exist yet, load from .ino
@@ -602,11 +602,11 @@ void loadConsoles(){
       consolesSize++;
   }
   f.close();
-}
+} // end of loadConsoles()
 
 void handleGetPayload(){
   server.send(200, "text/plain", payload);
-}
+} // end of handleGetPayload()
 
 void handleImportAll() {
   if (!server.hasArg("plain")) {
@@ -641,25 +641,23 @@ void handleImportAll() {
   saveGameDB();
 
   server.send(200, "application/json", "{\"status\":\"ok\"}");
-}
+} // end of handleImportAll()
 
 void handleExportAll() {
   JsonDocument doc;
 
-  // consoles.json
-  JsonArray consolesArr = doc.createNestedArray("consoles");
+  JsonArray consolesArr = doc["consoles"].to<JsonArray>();
   for (int i = 0; i < consolesSize; i++) {
-    JsonObject o = consolesArr.createNestedObject();
+    JsonObject o = consolesArr.add<JsonObject>();
     o["Desc"] = consoles[i].Desc;
     o["Address"] = consoles[i].Address;
     o["DefaultProf"] = consoles[i].DefaultProf;
     o["Enabled"] = consoles[i].Enabled;
   }
 
-  // gameDB.json
-  JsonArray gameArr = doc.createNestedArray("gameDB");
+  JsonArray gameArr = doc["gameDB"].to<JsonArray>();
   for (int i = 0; i < gameDBSize; i++) {
-    JsonArray item = gameArr.createNestedArray();
+    JsonArray item = gameArr.add<JsonArray>();
     item.add(gameDB[i][0]);
     item.add(gameDB[i][1]);
     item.add(gameDB[i][2]);
@@ -669,8 +667,7 @@ void handleExportAll() {
   serializeJsonPretty(doc, out);
   server.sendHeader("Content-Disposition", "attachment; filename=donutshop_config.json");
   server.send(200, "application/json", out);
-}
-
+} // end of handleExportAll()
 
 
 void handleRoot() {
@@ -784,8 +781,6 @@ void handleRoot() {
         background-color: #4CAF50;
       }
       .profile-match td input {
-
-
         -webkit-appearance: none;
         appearance: none;
       }
@@ -802,7 +797,6 @@ void handleRoot() {
       <button onclick="exportData()">Export Config</button>
     </div>
   <center><h1>Donut Shop</h1></center>
-
   <div class="controls">
     <button onclick="addConsole()">Add Console</button>
     <span class="tooltip">
@@ -1065,7 +1059,7 @@ void handleRoot() {
     try {
       const res = await fetch('/updateConsoles', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, // <--- important
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
@@ -1189,8 +1183,6 @@ void handleRoot() {
       body: JSON.stringify(gameProfiles)
     });
 
-    // loadData();
-
     const resC = await fetch('/getConsoles');
     consoles = await resC.json();
 
@@ -1204,7 +1196,6 @@ void handleRoot() {
 
     highlightProfileRow();
     highlightConsoleProfiles();
-
   }
 
   // ---------------- SORTING ----------------
@@ -1349,7 +1340,7 @@ void handleRoot() {
     }
   }, 2500);
 
-  // ---------------- SAFE HIGHLIGHT FUNCTIONS ----------------
+  // ---------------- HIGHLIGHT FUNCTIONS ---------------- 
   function highlightProfileRow() {
     const rows = document.querySelectorAll('#profileTable tbody tr');
 
@@ -1392,6 +1383,7 @@ void handleRoot() {
     });
   }
 
+  // ---------------- EXPORT / IMPORT FUNCTIONS ----------------
   function exportData() {
     window.open('/exportAll', '_blank');
   }
@@ -1430,7 +1422,6 @@ void handleRoot() {
     reader.readAsText(file);
   }
 
-
   </script>
 
   </body>
@@ -1438,4 +1429,4 @@ void handleRoot() {
   )rawliteral";
 
   server.send(200, "text/html", page);
-}
+} // end of handleRoot()
