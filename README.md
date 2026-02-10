@@ -1,7 +1,7 @@
 # DonutShop
 Donut Shop is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based on gameID. <br />
 
-<img src="./images/dsdemo.JPG">
+<img src="./images/dsdemo.JPG"><br />
 
 <p align="center"><img width="500" src="./images/1ds.JPG"></p><br />
 
@@ -9,6 +9,7 @@ Donut Shop is an Arduino Nano ESP32 + OTG adapter that changes profiles for the 
 See it in action: https://youtu.be/ldbfFbKzjh8
 <br /><br />
 ## Updates
+  - OTA updates now available. "donutshop" shows up as a Network port in Arduino IDE 2.x
   - New Web UI!
     - [Follow steps below to setup.](https://github.com/svirant/DonutShop/#additional-steps-for-latest-version-of-donutshopino)
   - Detection rates have been sped up!
