@@ -1,5 +1,5 @@
 # DonutShop
-Donut Shop is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based on gameID. <br />
+is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based on gameID. <br />
 
 <img src="./images/dsdemo.JPG"><br />
 
@@ -86,9 +86,13 @@ Requires you to short the B1 and Gnd pins during one of the steps. This method i
 10. If successful, the sketch will compile and upload leaving you with a message "Hard resetting via RTS pin..."
 11. Disconnect the usb cable and remove the short on B1 and Gnd.
 12. Upon reconnecting the usb cable your board should **Successfully boot DonutShop**. You should see the blue led return indicating it's connected to WiFi and looking for addresses to connect to. If the blue led does not return, press the RST button and/or make sure you have your WiFi settings correctly entered. Remember, only 2.4GHz wifi is supported.
-13. For all future changes/uploads...
+13. For all future changes/uploads you can return to using the normal "Sketch" -> "Upload" option. Choose between these two methods:
+
+Wifi OTA:
+- You can use select "donutshop" as a Network port in Arduino IDE 2.x<br />
+
+USB:
 - The board will always need to be in "bootloader" mode by "double clicking" the RST button right after connecting the usb cable. 
-- You can also now return to using the normal "Sketch" -> "Upload" option.
 
 ## General Setup
 
@@ -99,11 +103,6 @@ For consoles list, quickest if IP address is used versus Domain address:
 If you have multiple consoles on when DonutShop is booting, the console furthest down the list wins. If more than 2 consoles are active when one is powered off, the console highest on the list takes over.
 
 There are a multiple moving parts with this setup, and if you have issues, please use the "DonutShop_usb-only-test.ino". More info in the troublehshooting section at the end.
-
-#### I believe the only library you need to add is a fork of "EspUsbHost"
-Go to: https://github.com/wakwak-koba/EspUsbHost 
- - Click the GREEN "<> Code" box and "Download ZIP"
- - In the Arudino IDE; goto "Sketch" -> "Include Library" -> "Add .ZIP Library"
 
 <br />
 
@@ -134,10 +133,8 @@ int S0_pwr_profile = -12;    // When all consoles definied below are off, load t
 bool S0_gameID = true;     // When a gameID match is not found for a powered on console, DefaultProf for that console will load
 ```
 ## WiFi setup
-**ONLY** compatible with **2.4GHz** WiFi APs. Replace SSID and password with your network's. Make sure to not leave out the " " quotes.
-```
-WiFi.begin("SSID","password");
-```
+**ONLY** compatible with **2.4GHz** WiFi APs. Configure the options at the beginning of the .ino file.
+
 <br />
 
 ## Thank you!
