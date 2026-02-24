@@ -1,5 +1,5 @@
 /*
-* DonutShop (Arduino Nano ESP32 only)
+* Donut Dongle gameID (Arduino Nano ESP32 only)
 * Copyright(C) 2026 @Donutswdad
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,8 @@
 * along with this program.  If not,see <http://www.gnu.org/licenses/>.
 */
 
-#define FIRMWARE_VERSION "0.5e"
-#define FW_TYPE "C"
+#define FIRMWARE_VERSION "0.5g"
+#define FW_TYPE 'C'
 #define SEND_LEDC_CHANNEL 0
 #define IR_SEND_PIN 11    // Optional IR LED Emitter for RT5X compatibility. Sends IR data out Arduino pin D11
 #define IR_RECEIVE_PIN 2  // Optional IR Receiver on pin D2
@@ -39,9 +39,9 @@
 #include <Update.h>
 // <EspUsbHostSerial_FTDI.h> is listed further down with instructions on how to install
 
-uint8_t const debugE1CAP = 0; // line ~782
-uint8_t const debugE2CAP = 0; // line ~1046
-uint8_t const debugState = 0; // line ~590
+uint8_t const debugE1CAP = 0; // line ~797
+uint8_t const debugE2CAP = 0; // line ~1061
+uint8_t const debugState = 0; // line ~592
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -295,6 +295,7 @@ struct Console {
   int On;
   int King;
   bool Enabled;
+  uint8_t Order;
 };
 
 struct profileorder {
@@ -317,11 +318,12 @@ uint8_t mswitchSize = 3;
                    //           12 means SVS profile 12
                    //           etc...
 Console consoles[MAX_CONSOLES] = {{"PS1 Digital","http://ps1digital.local/gameid",-9,0,0,0,1}, // you can add more, but stay in this format
-                      {"MemCardPro","https://10.0.1.52/api/currentState",-5,0,0,0,1},
+                      {"MemCardPro","http://10.0.1.50/api/currentState",-5,0,0,0,1},
+                      {"MemCardPro 2.0+ Firmware","https://10.0.1.52/api/currentState",-5,0,0,0,1},
                       {"N64 Digital","http://n64digital.local/gameid",-7,0,0,0,1} // the last one in the list has no "," at the end
                       };
 
-int consolesSize = 3; // Can hold MAX_CONSOLES entries, but only set for 3 so the UI doesnt show 7 blank entries :)
+int consolesSize = 4; // Can hold MAX_CONSOLES entries, but only set for current size so the UI doesnt show blank entries :)
 
 
                    // If using a "remote button profile" for the "PROFILE" which are valued 1 - 12, place a "-" before the profile number. 
@@ -453,7 +455,6 @@ class SerialFTDI : public EspUsbHostSerial_FTDI {
       usb_host_transfer_submit(this->usbTransfer_recv);
       if(cprof != "null"){
         tp = cprof.toInt();
-        digitalWrite(LED_BUILTIN,HIGH);
         analogWrite(LED_RED,255);
         analogWrite(LED_BLUE,255);
         analogWrite(LED_GREEN,222);
@@ -469,7 +470,6 @@ class SerialFTDI : public EspUsbHostSerial_FTDI {
         }
         submit((uint8_t *)reinterpret_cast<const uint8_t*>(&tcprof[0]), tcprof.length()); // usb response
         if(tp < 0) delay(1000); // only added so the green led stays lit for 1 second for "remote prof" commands
-        digitalWrite(LED_BUILTIN,LOW);
         analogWrite(LED_RED,255);
         analogWrite(LED_BLUE,255);
         analogWrite(LED_GREEN,255);
@@ -537,9 +537,9 @@ void setup(){
   #endif
   Serial.begin(9600);                           // set the baud rate for the RT4K VGA serial connection
   extronSerial.begin(9600,SERIAL_8N1,3,4);   // set the baud rate for the Extron sw1 Connection
-  extronSerial.setTimeout(150);                 // sets the timeout for reading / saving into a string
+  extronSerial.setTimeout(50);                 // sets the timeout for reading / saving into a string
   extronSerial2.begin(9600,SERIAL_8N1,8,9);  // set the baud rate for Extron sw2 Connection
-  extronSerial2.setTimeout(150);                // sets the timeout for reading / saving into a string for the Extron sw2 Connection3
+  extronSerial2.setTimeout(50);                // sets the timeout for reading / saving into a string for the Extron sw2 Connection3
   MDNS.begin(donuthostname); // defined around line 40 at the top
   if(!LittleFS.begin(true)){ // format if mount fails
     Serial.println(F("LittleFS mount failed!"));
@@ -581,11 +581,13 @@ void DDloop(void *pvParameters){
   (void)pvParameters;
 
   for(;;){
+    #if FW_TYPE == 'D'
     readIR();
     readExtron1();
     readExtron2();
     if(RTwake)sendRTwake(8000); // 8000 is 8 seconds. After waking the RT4K, wait this amount of time before re-sending the latest profile change.
     if(delaySend)DStime(500);
+    #endif
     server.handleClient();
     if(debugState){
       delay(100);
@@ -657,32 +659,42 @@ void readGameID(){ // queries addresses in "consoles" array for gameIDs
             if(consoles[i].Prof != result && result != -1){ // gameID found for console, set as King, unset previous King, send profile change 
               consoles[i].Prof = result;
               consoles[i].King = 1;
-              for(int j=0;j < consolesSize;j++){ // set previous King to 0
-                if(i != j && consoles[j].King == 1)
+              uint8_t prevOrder = consoles[i].Order;
+              for(int j=0;j < consolesSize;j++){ // set Order, set previous King to 0
+                if(j == i){
+                  consoles[j].Order = 0;
+                  consoles[j].King = 1;
+                }
+                else{
                   consoles[j].King = 0;
+                  if(consoles[j].Order < prevOrder) consoles[j].Order++;
+                }
               }
-              sendProfile(consoles[i].Prof,GAMEID1,1);
+              sendProfile(consoles[i].Prof,GAMEID1,0);
             }
           } 
         } // end of if(httpCode > 0 || httpCode == -11)
-        else{ // console is off, set attributes to 0, find a console that is On starting at the top of the gameID list, set as King, send profile
+        else{ // console is off, set attributes to 0, find lowest Order console that is On, set as King, send profile
           consoles[i].On = 0;
           consoles[i].Prof = 0;
           if(consoles[i].King == 1){
-            for(int k=0;k < consolesSize;k++){
-              if(i == k){
-                consoles[k].King = 0;
-                for(int l=0;l < consolesSize;l++){ // find next Console that is on
-                  if(consoles[l].On == 1){
-                    consoles[l].King = 1;
-                    sendProfile(consoles[l].Prof,GAMEID1,1);
-                    break;
-                  }
-                }
+            int bestIdx = -1;
+            uint8_t bestO = consolesSize;
+            for(uint8_t j=0;j < consolesSize;j++){
+              if(consoles[j].On && consoles[j].Order < bestO){
+                bestO = consoles[j].Order;
+                bestIdx = j;
               }
-    
-            } // end of for()
-          } // end of if()
+            }
+            for(uint8_t k=0;k < consolesSize;k++){
+              consoles[k].King = 0;
+            }
+            if(bestIdx != -1){ 
+              consoles[bestIdx].King = 1;
+              sendProfile(consoles[bestIdx].Prof,GAMEID1,0);
+              return;
+            }
+          } // end of if(consoles[i].King == 1)
           int count = 0;
           for(int m=0;m < consolesSize;m++){
             if(consoles[m].On == 0) count++;
@@ -694,24 +706,27 @@ void readGameID(){ // queries addresses in "consoles" array for gameIDs
       http.end();
       analogWrite(LED_BLUE, 255);
       }  // end of WiFi connection
-      else if(!consoles[i].Enabled){ // console is disabled in web ui, set attributes to 0, find a console that is On starting at the top of the gameID list, set as King, send profile
-          consoles[i].On = 0;
-          consoles[i].Prof = 0;
-          if(consoles[i].King == 1){
-            for(int k=0;k < consolesSize;k++){
-              if(i == k){
-                consoles[k].King = 0;
-                for(int l=0;l < consolesSize;l++){ // find next Console that is on
-                  if(consoles[l].On == 1){
-                    consoles[l].King = 1;
-                    sendProfile(consoles[l].Prof,GAMEID1,1);
-                    break;
-                  }
-                }
-              }
-    
-            } // end of for()
-          } // end of if()
+      else if(!consoles[i].Enabled){ // console is disabled in web ui, set attributes to 0, find lowest Order console that is On, set as King, send profile
+        consoles[i].On = 0;
+        consoles[i].Prof = 0;
+        if(consoles[i].King == 1){
+          int bestIdx = -1;
+          uint8_t bestO = consolesSize;
+          for(uint8_t j=0;j < consolesSize;j++){
+            if(consoles[j].On && consoles[j].Order < bestO){
+              bestO = consoles[j].Order;
+              bestIdx = j;
+            }
+          }
+          for(uint8_t k=0;k < consolesSize;k++){
+            consoles[k].King = 0;
+          }
+          if(bestIdx != -1){ 
+            consoles[bestIdx].King = 1;
+            sendProfile(consoles[bestIdx].Prof,GAMEID1,0);
+            return;
+          }
+        } // end of if(consoles[i].King == 1)
       } // end of if else()
     }
     currentGameTime = 0;
@@ -772,7 +787,7 @@ void readExtron1(){
     }
 
     if(MTVddSW1 && !automatrixSW1){  // if a MT-VIKI switch has been detected on SW1, then the currently active MT-VIKI hdmi port is checked for disconnection
-      MTVtime1(1500);
+      MTVtime1(2000);
     }
 
     // listens to the Extron sw1 Port for changes
@@ -1037,7 +1052,7 @@ void readExtron2(){
     }
 
     if(MTVddSW2 && !automatrixSW2){ // if a MT-VIKI switch has been detected on SW2, then the currently active MT-VIKI hdmi port is checked for disconnection
-      MTVtime2(1500);
+      MTVtime2(2000);
     }
 
     // listens to the Extron sw2 Port for changes
@@ -1593,75 +1608,75 @@ void readIR(){
       if(ir_recv_command == 63){
         if(aux8button < 3)aux8button++;
         else{ 
-          dualSerialPrintln("remote aux8");
+          dualSerialPrint("remote aux8");
         }
       }
       else if(ir_recv_command == 62){
         if(aux7button < 1)aux7button++;
-        else dualSerialPrintln("remote aux7");
+        else dualSerialPrint("remote aux7");
       }
       else if(ir_recv_command == 61){
-        dualSerialPrintln("remote aux6");
+        dualSerialPrint("remote aux6");
       }
       else if(ir_recv_command == 60){
-        dualSerialPrintln("remote aud"); // remote aux5
+        dualSerialPrint("remote aud"); // remote aux5
       }
       else if(ir_recv_command == 59){
-        dualSerialPrintln("remote col"); // remote aux4
+        dualSerialPrint("remote col"); // remote aux4
       }
       else if(ir_recv_command == 58){
-        dualSerialPrintln("remote aux3");
+        dualSerialPrint("remote aux3");
       }
       else if(ir_recv_command == 57){
-        dualSerialPrintln("remote aux2");
+        dualSerialPrint("remote aux2");
       }
       else if(ir_recv_command == 56){
-        dualSerialPrintln("remote aux1");
+        dualSerialPrint("remote aux1");
       }
       else if(ir_recv_command == 52){
-        dualSerialPrintln("remote res1");
+        dualSerialPrint("remote res1");
       }
       else if(ir_recv_command == 53){
-        dualSerialPrintln("remote res2");
+        dualSerialPrint("remote res2");
       }
       else if(ir_recv_command == 54){
-        dualSerialPrintln("remote res3");
+        dualSerialPrint("remote res3");
       }
       else if(ir_recv_command == 55){
-        dualSerialPrintln("remote res4");
+        dualSerialPrint("remote res4");
       }
       else if(ir_recv_command == 51){
-        dualSerialPrintln("remote res480p");
+        dualSerialPrint("remote res480p");
       }
       else if(ir_recv_command == 50){
-        dualSerialPrintln("remote res1440p");
+        dualSerialPrint("remote res1440p");
       }
       else if(ir_recv_command == 49){
-        dualSerialPrintln("remote res1080p");
+        dualSerialPrint("remote res1080p");
       }
       else if(ir_recv_command == 48){
-        dualSerialPrintln("remote res4k");
+        dualSerialPrint("remote res4k");
       }
       else if(ir_recv_command == 47){
-        dualSerialPrintln("remote buffer");
+        dualSerialPrint("remote buffer");
       }
       else if(ir_recv_command == 44){
-        dualSerialPrintln("remote genlock");
+        dualSerialPrint("remote genlock");
       }
       else if(ir_recv_command == 46){
-        dualSerialPrintln("remote safe");
+        dualSerialPrint("remote safe");
       }
       else if(ir_recv_command == 86){
-        dualSerialPrintln("remote pause");
+        dualSerialPrint("remote pause");
       }
       else if(ir_recv_command == 45){
-        dualSerialPrintln("remote phase");
+        dualSerialPrint("remote phase");
       }
       else if(ir_recv_command == 43){
-        dualSerialPrintln("remote gain");
+        dualSerialPrint("remote gain");
       }
       else if(ir_recv_command == 36){
-        dualSerialPrintln("remote prof");
+        dualSerialPrint("remote prof");
       }
       else if(ir_recv_command == 11){
         sendRBP(1);
@@ -1732,46 +1747,46 @@ void readIR(){
         if(OSSCir == 1){sendIR("ossc",12,3);} // OSSC profile 12
       }
       else if(ir_recv_command == 35){
-        dualSerialPrintln("remote adc");
+        dualSerialPrint("remote adc");
       }
       else if(ir_recv_command == 34){
-        dualSerialPrintln("remote sfx");
+        dualSerialPrint("remote sfx");
       }
       else if(ir_recv_command == 33){
-        dualSerialPrintln("remote scaler");
+        dualSerialPrint("remote scaler");
       }
       else if(ir_recv_command == 32){
-        dualSerialPrintln("remote output");
+        dualSerialPrint("remote output");
       }
       else if(ir_recv_command == 17){
-        dualSerialPrintln("remote input");
+        dualSerialPrint("remote input");
       }
       else if(ir_recv_command == 41){
-        dualSerialPrintln("remote stat");
+        dualSerialPrint("remote stat");
       }
       else if(ir_recv_command == 40){
-        dualSerialPrintln("remote diag");
+        dualSerialPrint("remote diag");
       }
       else if(ir_recv_command == 66){
-        dualSerialPrintln("remote back");
+        dualSerialPrint("remote back");
       }
       else if(ir_recv_command == 83){
-        dualSerialPrintln("remote ok");
+        dualSerialPrint("remote ok");
       }
       else if(ir_recv_command == 79){
-        dualSerialPrintln("remote right");
+        dualSerialPrint("remote right");
       }
       else if(ir_recv_command == 16){
-        dualSerialPrintln("remote down");
+        dualSerialPrint("remote down");
       }
       else if(ir_recv_command == 87){
-        dualSerialPrintln("remote left");
+        dualSerialPrint("remote left");
       }
       else if(ir_recv_command == 24){
-        dualSerialPrintln("remote up");
+        dualSerialPrint("remote up");
       }
       else if(ir_recv_command == 92){
-        dualSerialPrintln("remote menu");
+        dualSerialPrint("remote menu");
       }
       else if(ir_recv_command == 26){ // power button
         Serial.println(F("\rpwr on\r")); // wake
@@ -1784,28 +1799,28 @@ void readIR(){
     }
     else if(ir_recv_address == 73 && repeatcount > 4){ // directional buttons have to be held down for just a bit before repeating
       if(ir_recv_command == 24){
-        dualSerialPrintln("remote up");
+        dualSerialPrint("remote up");
       }
       else if(ir_recv_command == 16){
-        dualSerialPrintln("remote down");
+        dualSerialPrint("remote down");
       }
       else if(ir_recv_command == 87){
-        dualSerialPrintln("remote left");
+        dualSerialPrint("remote left");
       }
       else if(ir_recv_command == 79){
-        dualSerialPrintln("remote right");
+        dualSerialPrint("remote right");
       }
     } // end of if(ir_recv_address
     
     if(ir_recv_address == 73 && repeatcount > 15){ // when directional buttons are held down for even longer... turbo directional mode
       if(ir_recv_command == 87){
         for(uint8_t i=0;i<4;i++){
-          dualSerialPrintln("remote left");
+          dualSerialPrint("remote left");
         }
       }
       else if(ir_recv_command == 79){
         for(uint8_t i=0;i<4;i++){
-          dualSerialPrintln("remote right");
+          dualSerialPrint("remote right");
         }
       }
     } // end of turbo directional mode
@@ -1997,7 +2012,6 @@ void LS0time1(unsigned long eTime){
     LScurrentTime = 0;
     LSprevTime = 0;
     extronSerial.print(F("0LS"));
-    delay(20);
  }
 } // end of LS0time1()
 
@@ -2009,7 +2023,6 @@ void LS0time2(unsigned long eTime){
     LScurrentTime2 = 0;
     LSprevTime2 = 0;
     extronSerial2.print(F("0LS"));
-    delay(20);
  }
 } // end of LS0time2()
 
@@ -2100,13 +2113,13 @@ void sendRBP(int prof){ // send Remote Button Profile
   #endif
 } // end of sendRBP()
 
-void dualSerialPrintln(String str){
+void dualSerialPrint(String str){
   str = "\r" + str + "\r\n";
-  Serial.println(str);
+  Serial.print(str);
   #if usbMode
   usbHost.tcmd = str;
   #endif
-} // end of dualSerialPrintln()
+} // end of dualSerialPrint()
 
 void MTVtime1(unsigned long eTime){
   MTVcurrentTime = millis();  // Init timer
@@ -2116,7 +2129,6 @@ void MTVtime1(unsigned long eTime){
     MTVcurrentTime = 0;
     MTVprevTime = 0;
     extronSerialEwrite("viki",currentMTVinput[0],1);
-    delay(50);
  }
 }  // end of MTVtime1()
 
@@ -2128,7 +2140,6 @@ void MTVtime2(unsigned long eTime){
     MTVcurrentTime2 = 0;
     MTVprevTime2 = 0;
     extronSerialEwrite("viki",currentMTVinput[1] - 100,2);
-    delay(50);
  }
 } // end of MTVtime2()
 
@@ -2146,8 +2157,6 @@ void ExtronOutputQuery(uint8_t outputNum, uint8_t sw){
     extronSerial.write((uint8_t *)cmd,len);
   else if(sw == 2)
     extronSerial2.write((uint8_t *)cmd,len);
-
-  delay(50);
 } // end of ExtronOutputQuery()
 
 void extronSerialEwrite(String type, uint8_t value, uint8_t sw){
@@ -2165,7 +2174,6 @@ void extronSerialEwrite(String type, uint8_t value, uint8_t sw){
     else if(sw == 2)
       extronSerial2.write(tesmart,6);
   }
-  delay(50);
 }  // end of extronSerialEwrite()
 
 
@@ -2178,8 +2186,8 @@ void sendProfile(int sprof, uint8_t sname, uint8_t soverride){
     for(uint8_t i=0;i < consolesSize;i++){
       if(consoles[i].King == 1){
         if(SRS == 0 && sprof > 0 && sprof < 12){
-            gdprof = (-1)*consoles[i].DefaultProf;
-            gprof = consoles[i].Prof;
+          gdprof = (-1)*consoles[i].DefaultProf;
+          gprof = consoles[i].Prof;
         }
         else{
           gdprof = consoles[i].DefaultProf;
@@ -2199,7 +2207,7 @@ void sendProfile(int sprof, uint8_t sname, uint8_t soverride){
     }
   }
 
-  // if GAMEID1 profile is the same as current profile, do not resend profile
+  // if GAMEID1 profile becomes the same as current profile, do not resend profile
   for(uint8_t i=0;i < mswitchSize;i++){
     if(sname == GAMEID1 && i != GAMEID1 && sprof == mswitch[i].Prof && mswitch[i].King == 1){
       mswitch[i].King = 0;
@@ -2254,7 +2262,7 @@ void sendProfile(int sprof, uint8_t sname, uint8_t soverride){
     else if(sname == GAMEID1){ sendSVS(sprof - offset); }
     else { sendSVS(sprof); } // everything else
   }
-  else if(sprof == 0){ // all inputs are off, set attributes to 0, find a console that is On starting at the top of the list, set as King, send profile
+  else if(sprof == 0){ // all inputs are off, set attributes to 0, find the lowest Order console that is On, set as King, send profile
     mswitch[sname].On = 0;
     mswitch[sname].Prof = 0;
     if(mswitch[sname].King == 1){
@@ -2602,6 +2610,10 @@ void loadConsoles(){
       consolesSize++;
   }
   f.close();
+
+  for(uint8_t i = 0;i < consolesSize;i++){ // initialize .Order for consoles
+    consoles[i].Order = i;
+  }
 } // end of loadConsoles()
 
 void handleGetPayload(){
@@ -2652,6 +2664,7 @@ void handleImportAll() {
 
     S0 = settings["S0"] | false;
     S0_gameID = settings["S0_gameID"] | false;
+    #if FW_TYPE == 'D'
     SRS = settings["SRS"] | 0;
     offset = settings["offset"] | 0;
     RT5Xir = settings["RT5Xir"] | 0;
@@ -2675,6 +2688,7 @@ void handleImportAll() {
         vinMatrix[j] = vin[j] | 1;
       }
     }
+    #endif
 
     saveVars();
   }
@@ -2709,6 +2723,7 @@ void handleExportAll(){
 
   settings["S0"] = S0;
   settings["S0_gameID"] = S0_gameID;
+  #if FW_TYPE == 'D'
   settings["SRS"] = SRS;
   settings["offset"] = offset;
   settings["RT5Xir"] = RT5Xir;
@@ -2728,6 +2743,7 @@ void handleExportAll(){
   for(int j=0;j < 65;j++) {
     vin.add(vinMatrix[j]);
   } // end of handleExportAll
+  #endif
 
   // ---------------- Send file ----------------
   String out;
@@ -2778,11 +2794,7 @@ void handleUpdateUpload() {
 
 void handleRoot(){
   String fwVer = String(FIRMWARE_VERSION);
-  #ifdef FW_TYPE
   String fwType = String(FW_TYPE);
-  #else
-  String fwType = "";
-  #endif
   String page = R"rawliteral(
   <!DOCTYPE html>
   <html>
@@ -3625,7 +3637,7 @@ void handleRoot(){
       tooltipText.textContent = "Back";
       currentPage = "settings";
 
-      // If FW_TYPE == "C", load Quick Settings
+      // If FW_TYPE == 'C', load Quick Settings
       if (typeof fwType !== "undefined" && fwType === "C") {
         showQuickSettings();
       }
@@ -3988,7 +4000,8 @@ void handleRoot(){
       Desc: "Console Name",
       Address: "http://",
       DefaultProf: 0,
-      Enabled: true
+      Enabled: true,
+      Order: consoles.length
     });
 
     await saveConsoles();

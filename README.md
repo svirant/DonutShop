@@ -35,13 +35,14 @@ See it in action: https://youtu.be/ldbfFbKzjh8
 |N64Digital | yes, confirmed first hand | |
 |RetroGEM N64 | yes | |
 |RetroGEM PS1 | yes | |
-| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | |
+| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | MemCardPro 2.0+ firmware requires https instead of http |
 | Fenrir ?| | |
 | more on the way... |  
 
 ### LED activity
 | **Color**    | Blinking | On | Notes |
 | ------------- | ------------- |------------- |------------- |
+|<code style="color : orange">ORANGE</code> | | Wifi not connected | After 2 minutes of unsuccessfully connecting, "DonutShop_Setup" Wifi AP will reappear to help with reconnection. |
 |<code style="color : blue">BLUE</code> | WiFi active, querying gameID addresses| Longer blinks represent an unsuccessful query of gameID address. Usually a powered off console in the list.| After initial power, no blue light means WiFi not found. |
 |<code style="color : green">GREEN</code> | 1 second blink is gameID match found and SVS profile being sent to RT4K | |  | 
 |<code style="color : red">RED</code> | | Power| No way to control as it's hardwired in. May just need to cover with tape. |
@@ -99,7 +100,7 @@ For consoles list, quickest if IP address is used versus Domain address:
   - Ex: http://10.0.1.10/gameid vs http://ps1digital.local/gameid 
 
 <br />
-If you have multiple consoles on when DonutShop is booting, the console furthest down the list wins. If more than 2 consoles are active when one is powered off, the console highest on the list takes over.
+If you have multiple consoles on when DonutShop is booting, the console furthest down the list wins. If more than 2 consoles are active when one is powered off, the console that was on prior takes over. (Order is remembered.)<br><br>
 
 There are a multiple moving parts with this setup, and if you have issues, please use the "DonutShop_usb-only-test.ino". More info in the troublehshooting section at the end.
 
