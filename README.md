@@ -42,61 +42,38 @@ See it in action: https://youtu.be/ldbfFbKzjh8
 ### LED activity
 | **Color**    | Blinking | On | Notes |
 | ------------- | ------------- |------------- |------------- |
-|<code style="color : orange">ORANGE</code> | | Wifi not connected | After 2 minutes of unsuccessfully connecting, "DonutShop_Setup" Wifi AP will reappear to help with reconnection. |
-|<code style="color : blue">BLUE</code> | WiFi active, querying gameID addresses| Longer blinks represent an unsuccessful query of gameID address. Usually a powered off console in the list.| After initial power, no blue light means WiFi not found. |
-|<code style="color : green">GREEN</code> | 1 second blink is gameID match found and SVS profile being sent to RT4K | |  | 
-|<code style="color : red">RED</code> | | Power| No way to control as it's hardwired in. May just need to cover with tape. |
+| 🟠| | Wifi not connected | After 2 minutes of unsuccessfully connecting, "DonutShop_Setup" Wifi AP will reappear to help with reconnection. |
+| 🔵| WiFi active, querying gameID addresses| Longer blinks represent an unsuccessful query of gameID address. Usually a powered off console in the list.| After initial power, no blue light means WiFi not found. |
+| 🟢| 1 second blink is gameID match found and SVS profile being sent to RT4K | |  | 
+| 🔴| | Power| No way to control as it's hardwired in. May just need to cover with tape. |
 
 You can disable the <code style="color : blue">BLUE</code> / <code style="color : green">GREEN</code> LEDs by commenting out the following lines in the .ino:
 ```
  //pinMode(LED_GREEN, OUTPUT);
  //pinMode(LED_BLUE, OUTPUT);
 ```
-## Programming the Arduino Nano ESP32
-I recommend the [Official Arduino IDE and guide](https://www.arduino.cc/en/Guide) if you're unfamiliar with Arduinos. All .ino files used for programming are listed above. The following Libraries will also need to be added in order to Compile successfully.<br />
-- **Libraries:**
-  - If a Library is missing, it should be available through the built-in Library Manager under "Tools" -> "Manage Libraries..."
-  - <EspUsbHostSerial_FTDI.h>  Follow these steps to add EspUsbHostSerial_FTDI.h
-    - Goto https://github.com/wakwak-koba/EspUsbHost
-    - Click the <code style="color : green">GREEN</code> "<> Code" box and "Download ZIP"
-    - In Arudino IDE; goto "Sketch" -> "Include Library" -> "Add .ZIP Library"
+
+## Flashing 
+1. Download the latest ```.bin``` files listed above
+2. Open [ESP Tool](https://espressif.github.io/esptool-js/) in Chrome, Brave, or Edge
+3. Connect your Arduino Nano ESP32 via USB and double click the RST button immediately following to enter **recovery mode** (a GREEN led will strobe when successful)
+4. Click **Connect** and select your device (typically starts with USB JTAG)
+5. Click **Erase Flash** to format your device (required for LittleFS)
+6. Set Flash Address to **0x0** and Choose the downloaded file ```Donut_Shop.bin```
+7. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
+8. Click **Program**
+9. Once complete, reconnect the USB cable of the device and continue **Setup** below...
+
+## Setup
+1. Upon reconnecting the USB cable, your board should **Successfully boot DonutShop** and leave you with an ORANGE led.
+2. With your computer or smartphone, join the broadcasted ```DonutShop_Setup``` WiFi to connect it to your home network.
+3. Follow the instructions listed and once complete, you should see a BLUE led indicating it's connected to WiFi and looking for addresses to connect to. If the blue led does not show, press the RST button one time.
+4. You should now be able to visit http://donutshop.local to finish setup.
+5. For all future changes/uploads you can use the "Firmware Update" section in Settings to apply the latest listed .bin file.
    
-
-**To put the Nano ESP32 into programming mode** 
- - Double-click the button on top right after connecting the usb-c cable. (or triple-click w/o disconnecting)
- - You will see the <code style="color : green">GREEN</code> led strobe if successful.
- - TLDR is: Because DonutShop takes over the usb port, this resets that.
-
-## Additional steps for latest version of DonutShop.ino
-Requires you to short the B1 and Gnd pins during one of the steps. This method is the best I got at the moment.
-
-1. "double click" the physical RST button right after connecting to your PC/Mac to put into "bootloader mode". You'll see the green led strobe if successful.
-2. Open up the DonutShop.ino in the Arduino IDE
-3. In Arduino IDE, under the "Tools" menu, make sure..
-- Board - "Arduino Nano ESP32" selected
-- Port - The listed "Serial" port is chosen, not dfu one.
-- Partition Scheme - "With SPIFFS partition (advanced)" is chosen
-- Pin Numbering - "By Arduino pin (default)"
-- USB Mode - "Normal mode (TinyUSB)"
-- Programmer  - "Esptool" is selected
-4. Select the last option in "Tools" menu. "Burn Bootloader"
-5. THIS WILL FAIL the first time. Wait about 15 seconds and then go back and select the new "Serial" port that is available and select "Burn Bootloader" again. 
-6. This should successfully burn the bootloader and now your board will have a half red/blue led that is lit.
-7. Disconnect the usb cable and short the B1 pin with the Gnd pin next to it. I used some metal tweezers.
-<img width="322" height="480" alt="Image" src="./images/2ds.JPG" />
-
-8. With B1 and Gnd shorted, reconnect the usb cable and the led should now be a solid Green.
-9. Return to the Arduino IDE and select "Sketch", "Upload Using Programmer". Make sure to use THIS option and NOT the normal "Upload" option.
-10. If successful, the sketch will compile and upload leaving you with a message "Hard resetting via RTS pin..."
-11. Disconnect the usb cable and remove the short on B1 and Gnd.
-12. Upon reconnecting the usb cable your board should **Successfully boot DonutShop** and leave you with an orange LED.
-13. With your computer or smartphone, join the broadcasted "DonutShop_Setup" Wifi to join it to your home network.
-14. Follow the instructions listed and once complete, you should see a blue led indicating it's connected to WiFi and looking for addresses to connect to. If the blue led does not show, press the RST button one time.
-15. For all future changes/uploads you can use the "Firmware Update" section in Settings to apply the latest listed .bin file.
-
 ## General Setup
 
-For consoles list, quickest if IP address is used versus Domain address:
+For Consoles, quickest if IP address is used versus Domain address:
   - Ex: http://10.0.1.10/gameid vs http://ps1digital.local/gameid 
 
 <br />
@@ -104,14 +81,21 @@ If you have multiple consoles on when DonutShop is booting, the console furthest
 
 There are a multiple moving parts with this setup, and if you have issues, please use the "DonutShop_usb-only-test.ino". More info in the troublehshooting section at the end.
 
-<br />
-
 ## Adding gameIDs, Consoles, and other Options
 
-The new Web UI allows you to live update the Consoles and gameID table. You no longer have to reflash for changes. You can also now import and export your config if anything were to happen and you need to rebuild.
+The Web UI allows you to live update the Consoles and gameID table. You no longer have to reflash for changes. You can also now import and export your config if anything were to happen and you need to rebuild.
 
 ## WiFi setup
 **ONLY** compatible with **2.4GHz** WiFi APs. Configured during initial setup process. If you need to change SSID or password, the "DonutShop_Setup" AP will reappear after 2 minutes of not being able to connect.
+
+## [Advanced] Programming the Arduino Nano ESP32 with custom .ino changes
+I recommend the [Official Arduino IDE and guide](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started-ide-v2/) if you're unfamiliar with Arduinos. All .ino files used for programming are listed above. The following Libraries will also need to be added in order to Compile successfully.<br />
+- **Libraries:**
+  - If a Library is missing, it should be available through the built-in Library Manager under "Tools" -> "Manage Libraries..."
+  - <EspUsbHostSerial_FTDI.h>  Follow these steps to add EspUsbHostSerial_FTDI.h
+    - Goto https://github.com/wakwak-koba/EspUsbHost
+    - Click the <code style="color : green">GREEN</code> "<> Code" box and "Download ZIP"
+    - In Arudino IDE; goto "Sketch" -> "Include Library" -> "Add .ZIP Library"
 
 <br />
 
@@ -123,7 +107,7 @@ The new Web UI allows you to live update the Consoles and gameID table. You no l
 
 If only the red status and power led are red, and you can ping the device but not access the web ui, the SPIFFS partition has not been configured. Make sure to follow the steps above to ensure the bootloader has been burned and device flashed properly the first time.
 
-The <code style="color : green">GREEN</code> and <code style="color : blue">BLUE</code> leds indicate WiFi and usb serial/gameID lookup respectively. This should help diagnose as a first step.
+The 🔵 and 🟢 leds indicate WiFi and usb serial/gameID lookup. This should help diagnose as a first step.
 
 After that, confirm the following:
  - Configured Wifi settings in .ino.
