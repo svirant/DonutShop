@@ -76,10 +76,9 @@ You can disable the <code style="color : blue">BLUE</code> / <code style="color 
 For Consoles, quickest if IP address is used versus Domain address:
   - Ex: http://10.0.1.10/gameid vs http://ps1digital.local/gameid 
 
-<br />
-If you have multiple consoles on when DonutShop is booting, the console furthest down the list wins. If more than 2 consoles are active when one is powered off, the console that was on prior takes over. (Order is remembered.)<br><br>
+If you have multiple consoles on when DonutShop is booting, the console furthest down the list wins. If more than 2 consoles are active when one is powered off, the console that was on prior takes over. (Order is remembered.)<br>
 
-There are a multiple moving parts with this setup, and if you have issues, please use the "DonutShop_usb-only-test.ino". More info in the troublehshooting section at the end.
+There are a multiple moving parts with this setup, and if you have issues, please use the "Donut_Shop_usb-only-test.ino". More info in the troublehshooting section at the end.
 
 ## Adding gameIDs, Consoles, and other Options
 
@@ -105,21 +104,13 @@ I recommend the [Official Arduino IDE and guide](https://docs.arduino.cc/softwar
 
 ## TroubleShooting ##
 
-If only the red status and power led are red, and you can ping the device but not access the web ui, the SPIFFS partition has not been configured. Make sure to follow the steps above to ensure the bootloader has been burned and device flashed properly the first time.
-
 The 🔵 and 🟢 leds indicate WiFi and usb serial/gameID lookup. This should help diagnose as a first step.
 
-After that, confirm the following:
- - Configured Wifi settings in .ino.
-    - Make sure it's to a **2.4GHz** Wifi AP. **5GHz is NOT supported** by the Arduino Nano ESP32.
- - Have at least 1 gameID to profile in the gameDB
- - Have at least 1 address in the consoles db that you can access with a web browser
-
- If you are sure of these settings, and it still does not work, try the following to test the usb serial connection:
-  - Configure your Arduino Nano ESP32 with the provided "DonutShop_usb-only-test.ino". This is configured to only load "remote profile 8".
+If you are sure of these settings, and it still does not work, try the following to test the usb serial connection:
+  - Configure your Arduino Nano ESP32 with the provided "Donut_Shop_usb-only-test.ino". This is configured to only load "remote profile 8".
     - You can change the 8 to 1 - 9 if needed.
   - Verify that everything is connected with your OTG adapter and has power.
-  - Press the reset button on top of the Arduino and within a couple of seconds it should load the remote profile.
+  - Press the reset button on top of the device and within a couple of seconds it should load the remote profile.
 
     If this works, then there must be a wifi connectivity issue somewhere. 
 
