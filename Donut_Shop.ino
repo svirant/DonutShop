@@ -1,5 +1,5 @@
 /*
-* Donut Shop (Arduino Nano ESP32 only)
+* Donut Dongle gameID (Arduino Nano ESP32 only)
 * Copyright(C) 2026 @Donutswdad
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,23 @@
 * along with this program.  If not,see <http://www.gnu.org/licenses/>.
 */
 
-#define FIRMWARE_VERSION "0.5k"
+#define FIRMWARE_VERSION "0.5.2d"
 #define FW_TYPE 'C'
 #define MAX_BYTES 50
 #define MAX_EINPUT 36
 #define MTV_TIME_CHECK 1500 // time between mt-viki disconnetion detection checks
 #define AM_TIME_CHECK 500 // time between auto-matrix input change detection
 #define SEND_LEDC_CHANNEL 0
-#define IR_SEND_PIN 11    // Optional IR LED Emitter for RT5X compatibility. Sends IR data out Arduino pin D11
+#define IR_SEND_PIN 11  // Optional IR LED Emitter for RT5X/OSSC/TV compatibility. Sends IR data out Arduino pin D11
+#define LED_BUILTIN 13
 #define IR_RECEIVE_PIN 2  // Optional IR Receiver on pin D2
 #define extronSerial Serial1
 #define extronSerial2 Serial2
 #define Serial Serial0 // ** COMMENT OUT THIS LINE ** to see output in Serial Monitor. Disables Serial output to RT4K. usbMode must also be set to "false"
 
 
-#include <TinyIRReceiver.hpp> // all can be found in the built-in Library Manager
 #include <IRremote.hpp>
+#include <TinyIRReceiver.hpp> // all can be found in the built-in Library Manager
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WebServer.h>
@@ -43,9 +44,9 @@
 #include <Update.h>
 // <EspUsbHostSerial_FTDI.h> is listed further down with instructions on how to install
 
-uint8_t const debugE1CAP = 0; // line ~802
-uint8_t const debugE2CAP = 0; // line ~1072
-uint8_t const debugState = 0; // line ~597
+uint8_t const debugE1CAP = 0; // line ~811
+uint8_t const debugE2CAP = 0; // line ~1125
+uint8_t const debugState = 0; // line ~606
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -238,6 +239,10 @@ uint8_t MTVir = 0;   // Must have IR "Receiver" connected to the Donut Dongle fo
                               // 2 = MT-VIKI 8 Port HDMI switch connected to "Extron sw2"
                               //     Using the RT4K Remote w/ the IR Receiver, AUX8 + profile button changes the MT-VIKI Input over Serial.
                               //     Sends auxprof SVS profiles listed below. You can change them below to 101 - 108 to prevent SVS profile conflicts if needed.
+                              //
+                              // 3 = MT-VIKI 8 Port HDMI switch connected to BOTH "alt sw1" and "alt sw2"
+                              //     Use AUX7 and AUX8 buttons as described above.
+                              //
 
 uint8_t TESmartir = 0;  // Must have IR "Receiver" connected to the Donut Dongle for option 1 and above.
                               // 0 = disables IR Receiver -> Serial Control for TESmart 16x1 Port HDMI switch
@@ -249,30 +254,28 @@ uint8_t TESmartir = 0;  // Must have IR "Receiver" connected to the Donut Dongle
                               // 2 = TESmart 16x1 HDMI switch connected to "alt sw2"
                               //     Using the RT4K Remote w/ the IR Receiver, AUX8 + profile button changes the Input over Serial. AUX8 + AUX1 - AUX4 for Input 13 - 16.
                               //     Sends SVS profile 101 - 116 as well.
-                              //  ** this option overrides auxprof shown below  **
                               //
                               // 3 = TESmart 16x1 HDMI switch connected to BOTH "alt sw1" and "alt sw2"
                               //     Use AUX7 and AUX8 buttons as described above.
-                              //  ** this option overrides auxprof shown below  **
-
-uint8_t auxprof[12] =   // Assign SVS profiles to IR remote profile buttons. 
-                              // Replace 1, 2, 3, etc below with "ANY" SVS profile number.
-                              // Press AUX8 then profile button to load. Must have IR Receiver connected and Serial connection to RT4K.
                               //
-                              // ** Will not work if TESmartir above is set to 2 or 3 **
+
+uint8_t auxprof[12] =         // Assign SVS profiles to IR remote profile buttons. 
+                              // Replace 1, 2, 3, etc below with "ANY" SVS profile number.
+                              // Press SAFE then profile button to load. Must have IR Receiver connected and Serial connection to RT4K.
+                              //
                               // 
-                              {1,  // AUX8 + profile 1 button
-                                2,  // AUX8 + profile 2 button
-                                3,  // AUX8 + profile 3 button
-                                4,  // AUX8 + profile 4 button
-                                5,  // AUX8 + profile 5 button
-                                6,  // AUX8 + profile 6 button
-                                7,  // AUX8 + profile 7 button
-                                8,  // AUX8 + profile 8 button
-                                9,  // AUX8 + profile 9 button
-                                10, // AUX8 + profile 10 button
-                                11, // AUX8 + profile 11 button
-                                12, // AUX8 + profile 12 button
+                              {1,  // SAFE + profile 1 button
+                                2,  // SAFE + profile 2 button
+                                3,  // SAFE + profile 3 button
+                                4,  // SAFE + profile 4 button
+                                5,  // SAFE + profile 5 button
+                                6,  // SAFE + profile 6 button
+                                7,  // SAFE + profile 7 button
+                                8,  // SAFE + profile 8 button
+                                9,  // SAFE + profile 9 button
+                                10, // SAFE + profile 10 button
+                                11, // SAFE + profile 11 button
+                                12, // SAFE + profile 12 button
                                 };
 
 
@@ -281,6 +284,8 @@ String const auxpower = "LG"; // AUX8 + Power button sends power off/on via IR E
 #define GAMEID1 0
 #define EXTRON1 1
 #define EXTRON2 2
+#define HDMI1 3
+#define OTAKU3 4
 #define MAX_CONSOLES 10
 #define MAX_GAMEDB 1000
 
@@ -309,8 +314,8 @@ struct profileorder {
   uint8_t Order;
 };
 
-profileorder mswitch[3] = {{0,0,0,0},{0,0,0,1},{0,0,0,2}};
-uint8_t mswitchSize = 3;
+profileorder mswitch[5] = {{0,0,0,0},{0,0,0,1},{0,0,0,2},{0,0,0,3},{0,0,0,4}};
+uint8_t mswitchSize = 5;
 
                    // format as so: {Description, console address, Default Profile for console, current profile state (leave 0), power state (leave 0), active state (leave 0), Enabled}
                    //
@@ -323,7 +328,7 @@ uint8_t mswitchSize = 3;
                    //           etc...
 Console consoles[MAX_CONSOLES] = {{"PS1 Digital","http://ps1digital.local/gameid",-9,0,0,0,1}, // you can add more, but stay in this format
                       {"MemCardPro","http://10.0.1.50/api/currentState",-5,0,0,0,1},
-                      {"MemCardPro 2.0+ Firmware","https://10.0.1.52/api/currentState",-5,0,0,0,1},
+                      {"MemCardPro2fw","https://10.0.1.52/api/currentState",-5,0,0,0,1},
                       {"N64 Digital","http://n64digital.local/gameid",-7,0,0,0,1} // the last one in the list has no "," at the end
                       };
 
@@ -375,6 +380,9 @@ int currentInputSW2 = -1;
 String ecap = "00000000000000000000000000000000000000000000"; // used to store Extron status messages for Extron in String format
 String einput = "000000000000000000000000000000000000"; // used to store Extron input
 byte ecapbytes[MAX_BYTES] = {0}; // used to store first MAX_BYTES bytes / messages for Extron capture
+bool ReconfigSet[2] = {false,false};
+uint8_t altprof = 0; // Used to keep track of SAFE button pressed for alt profiles
+uint16_t altprofoffset = 0; // Used for alt profiles
 
 // Serial commands
 byte viki[4] = {0xA5,0x5A,0x00,0xCC};
@@ -425,8 +433,8 @@ unsigned long sendtimer2 = 0;
 unsigned long ITEtimer2 = 0;
 
 // MT-VIKI Manual Switch variables
-uint8_t ITEstatus[] = {3,0,0};
-uint8_t ITEstatus2[] = {3,0,0};
+uint8_t ITEstatus[] = {3,2,0};
+uint8_t ITEstatus2[] = {3,2,0};
 bool ITErecv[2] = {0,0};
 bool listenITE[2] = {1,1};
 uint8_t ITEinputnum[2] = {0,0};
@@ -571,8 +579,8 @@ void setup(){
 
   server.begin();
 
-  xTaskCreate(DDloop,"DDloop",4096,NULL,1,NULL);
-  xTaskCreate(GIDloop,"GIDloop",4096,NULL,1,NULL);
+  xTaskCreate(DDloop,"DDloop",16384,NULL,1,NULL);
+  xTaskCreate(GIDloop,"GIDloop",16384,NULL,1,NULL);
   
 }  // end of setup
 
@@ -581,6 +589,7 @@ void loop(){
    // leave empty
    //
 }  // end of loop()
+
 
 void DDloop(void *pvParameters){
   (void)pvParameters;
@@ -833,6 +842,7 @@ void readExtron1(){
       eoutput[0] = 1;
     }
     else if(ecap.substring(0,8) == "RECONFIG"){     // This is received everytime a change is made on older Extron Crosspoints
+      ReconfigSet[0] = true;
       ExtronOutputQuery(ExtronVideoOutputPortSW1,1); // Finds current input for "ExtronVideoOutputPortSW1" that is connected to port 1 of the DD
     }
     else if(ecap.substring(amSizeSW1 + 6,amSizeSW1 + 9) == "Rpr" && automatrixSW1){ // detect if a Preset has been used 
@@ -882,7 +892,8 @@ void readExtron1(){
 
     // For older Extron Crosspoints, where "RECONFIG" is sent when changes are made, the profile is only changed when a different input is selected for the defined output. (ExtronVideoOutputPortSW1)
     // Without this, the profile would be resent when changes to other outputs are selected.
-    if(einput.substring(0,2) == "IN"){
+    if(einput.substring(0,2) == "IN" && einput.substring(2,4).toInt() == currentProf && ReconfigSet[0]){
+      ReconfigSet[0] = false;
       int temp = einput.substring(2,4).toInt();
       if(SRS == 0 && !S0 && temp > 0 && temp < 13 && temp == -1*currentProf) einput = "XX00";
       else if(SRS == 0 && S0 && temp > 0 && temp < 12 && temp == -1*currentProf) einput = "XX00";
@@ -1040,6 +1051,48 @@ void readExtron1(){
         else if(ecap.substring(0,13) == "remote prof12"){
           sendProfile(0,EXTRON1,1);
         }
+        else if(ecap.substring(0,13) == "remote prof23"){ // custom code for experimental project -->
+          sendProfile(23,HDMI1,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof24"){
+          sendProfile(24,HDMI1,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof25"){
+          sendProfile(25,HDMI1,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof26"){
+          sendProfile(26,HDMI1,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof27"){
+          sendProfile(27,HDMI1,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof29"){
+          sendProfile(0,HDMI1,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof30"){
+        sendProfile(0,OTAKU3,1);
+        } 
+        else if(ecap.substring(0,13) == "remote prof31"){
+          sendProfile(31,OTAKU3,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof32"){
+          sendProfile(32,OTAKU3,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof33"){
+          sendProfile(33,OTAKU3,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof34"){
+          sendProfile(34,OTAKU3,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof35"){
+          sendProfile(35,OTAKU3,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof36"){
+          sendProfile(36,OTAKU3,1);
+        }
+        else if(ecap.substring(0,13) == "remote prof13"){
+          sendProfile(-1,OTAKU3,1);
+        } // <-- end of custom code
         else if(ecap.substring(11,13).toInt() > 12){
           sendProfile(ecap.substring(11,13).toInt(),EXTRON1,1);
         }
@@ -1102,6 +1155,7 @@ void readExtron2(){
       eoutput[1] = 1;
     }
     else if(ecap.substring(0,8) == "RECONFIG"){     // This is received everytime a change is made on older Extron Crosspoints.
+      ReconfigSet[1] = true;
       ExtronOutputQuery(ExtronVideoOutputPortSW2,2); // Finds current input for "ExtronVideoOutputPortSW2" that is connected to port 2 of the DD
     }
     else if(ecap.substring(amSizeSW2 + 6,amSizeSW2 + 9) == "Rpr" && automatrixSW2){ // detect if a Preset has been used 
@@ -1150,7 +1204,10 @@ void readExtron2(){
 
     // For older Extron Crosspoints, where "RECONFIG" is sent when changes are made, the profile is only changed when a different input is selected for the defined output. (ExtronVideoOutputPortSW2)
     // Without this, the profile would be resent when changes to other outputs are selected.
-    if(einput.substring(0,2) == "IN" && einput.substring(2,4).toInt()+100 == currentProf) einput = "XX00";
+    if(einput.substring(0,2) == "IN" && einput.substring(2,4).toInt()+100 == currentProf && ReconfigSet[1]){
+      ReconfigSet[1] = false;
+      einput = "XX00";
+    }
 
     // For Extron devices, use remaining results to see which input is now active and change profile accordingly, cross-references eoutput[1]
     if(((einput.substring(0,2) == "IN" || einput.substring(0,2) == "In") && eoutput[1] && !automatrixSW2) || (einput.substring(0,3) == "Rpr")){
@@ -1234,7 +1291,8 @@ void readExtron2(){
       // for TESmart 4K60 / TESmart 4K30 / MT-VIKI HDMI switch on SW2
       if(ecapbytes[4] == 17 || ecapbytes[3] == 17 || ecap.substring(0,5) == "Auto_" || ecap.substring(15,20) == "Auto_" || ITEinputnum[1] > 0){
         if(ecapbytes[6] == 22 || ecapbytes[5] == 22 || ecapbytes[11] == 48 || ecapbytes[26] == 48 || ITEinputnum[1] == 1){
-          sendProfile(101,EXTRON2,1);
+          sendProfile(-1,HDMI1,1);
+          //sendProfile(101,EXTRON2,1);
           currentMTVinput[1] = 101;
           MTVdiscon[1] = false;
         }
@@ -1394,93 +1452,73 @@ void readIR(){
       }
 
       
-    } // end of extrabutton == 2
+    } // end of aux8button == 2
 
     if(ir_recv_address == 73 && TinyIRReceiverData.Flags != IRDATA_FLAGS_IS_REPEAT && aux8button == 1){ // if AUX8 was pressed and a profile button is pressed next,
-      if(ir_recv_command == 11){ // profile button 1                                                         // load "SVS" profiles 1 - 12 (profile button 1 - 12).
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[0]);                                                               // Can be changed to "ANY" SVS profile in the OPTIONS section
-        if(MTVir == 1){extronSerialEwrite("viki",1,1);}
-        if(MTVir == 2){extronSerialEwrite("viki",1,2);}
+      if(ir_recv_command == 11){ // profile button 1
+        if(MTVir > 1){extronSerialEwrite("viki",1,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",1,2);sendSVS(101);}                                                                   
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 7){ // profile button 2
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[1]);
-        if(MTVir == 1){extronSerialEwrite("viki",2,1);}
-        if(MTVir == 2){extronSerialEwrite("viki",2,2);}
+        if(MTVir > 1){extronSerialEwrite("viki",2,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",2,2);sendSVS(102);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 3){ // profile button 3
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[2]);
-        if(MTVir == 1){extronSerialEwrite("viki",3,1);}
-        if(MTVir == 2){extronSerialEwrite("viki",3,2);}
+        if(MTVir > 1){extronSerialEwrite("viki",3,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",3,2);sendSVS(103);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 10){ // profile button 4
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[3]);
-        if(MTVir == 1){extronSerialEwrite("viki",4,2);}
-        if(MTVir == 2){extronSerialEwrite("viki",4,2);}
+        if(MTVir > 1){extronSerialEwrite("viki",4,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",4,2);sendSVS(104);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 6){ // profile button 5
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[4]);
-        if(MTVir == 1){extronSerialEwrite("viki",5,1);}
-        if(MTVir == 2){extronSerialEwrite("viki",5,2);}
+        if(MTVir > 1){extronSerialEwrite("viki",5,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",5,2);sendSVS(105);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 2){ // profile button 6
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[5]);
-        if(MTVir == 1){extronSerialEwrite("viki",6,1);}
-        if(MTVir == 2){extronSerialEwrite("viki",6,2);}
+        if(MTVir > 1){extronSerialEwrite("viki",6,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",6,2);sendSVS(106);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 9){ // profile button 7
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[6]);
-        if(MTVir == 1){extronSerialEwrite("viki",7,1);}
-        if(MTVir == 2){extronSerialEwrite("viki",7,2);}
+        if(MTVir > 1){extronSerialEwrite("viki",7,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",7,2);sendSVS(107);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 5){ // profile button 8
-        if(MTVir == 0 && TESmartir < 2)sendSVS(auxprof[7]);
-        if(MTVir == 1){extronSerialEwrite("viki",8,1);}
-        if(MTVir == 2){extronSerialEwrite("viki",8,2);}
+        if(MTVir > 1){extronSerialEwrite("viki",8,2);}
         if(TESmartir > 1){extronSerialEwrite("tesmart",8,2);sendSVS(108);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 1){ // profile button 9
-        if(TESmartir < 2)sendSVS(auxprof[8]);
         if(TESmartir > 1){extronSerialEwrite("tesmart",9,2);sendSVS(109);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 37){ // profile button 10
-        if(TESmartir < 2)sendSVS(auxprof[9]);
         if(TESmartir > 1){extronSerialEwrite("tesmart",10,2);sendSVS(110);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 38){ // profile button 11
-        if(TESmartir < 2)sendSVS(auxprof[10]);
         if(TESmartir > 1){extronSerialEwrite("tesmart",11,2);sendSVS(111);}
         ir_recv_command = 0;
         aux8button = 0;
       }
       else if(ir_recv_command == 39){ // profile button 12
-        if(TESmartir < 2)sendSVS(auxprof[11]);
         if(TESmartir > 1){extronSerialEwrite("tesmart",12,2);sendSVS(112);}
         ir_recv_command = 0;
         aux8button = 0;
@@ -1510,6 +1548,11 @@ void readIR(){
         ir_recv_command = 0;
         aux8button = 0;
       }
+      else if(ir_recv_command == 83){ // ok button
+        dualSerialPrint(formatUptime(millis()));
+        ir_recv_command = 0;
+        aux8button = 0;
+      }
       else if(ir_recv_command == 63){
         ir_recv_command = 0;
         aux8button++;
@@ -1523,88 +1566,249 @@ void readIR(){
     } // end aux8button == 1
 
 
+    if(ir_recv_address == 73 && TinyIRReceiverData.Flags != IRDATA_FLAGS_IS_REPEAT && altprof == 2){ // if SAFE was pressed twice and a profile button is pressed next,
+      if(ir_recv_command == 11){ // profile button 1                                                     // always load alt profiles based on profile number until
+        altprofoffset = 1000;                                                                            // SAFEx2 + button profile 10,11,12 disables the feature 
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 7){ // profile button 2
+        altprofoffset = 2000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 3){ // profile button 3
+        altprofoffset = 3000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 10){ // profile button 4
+        altprofoffset = 4000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 6){ // profile button 5
+        altprofoffset = 5000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 2){ // profile button 6
+        altprofoffset = 6000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 9){ // profile button 7
+        altprofoffset = 7000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 5){ // profile button 8
+        altprofoffset = 8000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 1){ // profile button 9
+        altprofoffset = 9000;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 37){ // profile button 10
+        altprofoffset = 0;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 38){ // profile button 11
+       altprofoffset = 0;
+       sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 39){ // profile button 12
+        altprofoffset = 0;
+        sendSVS(currentProf);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 46){
+        Serial.println(F("\rremote safe\r"));
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else{
+        altprof = 0;
+      }
+    } // end of altprof == 2
+
+
+    if(ir_recv_address == 73 && TinyIRReceiverData.Flags != IRDATA_FLAGS_IS_REPEAT && altprof == 1){ // if SAFE was pressed and a profile button is pressed next,
+      if(ir_recv_command == 11){ // profile button 1                                                 // load auxprof
+        sendSVS(auxprof[0]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 7){ // profile button 2
+        sendSVS(auxprof[1]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 3){ // profile button 3
+        sendSVS(auxprof[2]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 10){ // profile button 4
+        sendSVS(auxprof[3]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 6){ // profile button 5
+        sendSVS(auxprof[4]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 2){ // profile button 6
+        sendSVS(auxprof[5]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 9){ // profile button 7
+        sendSVS(auxprof[6]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 5){ // profile button 8
+        sendSVS(auxprof[7]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 1){ // profile button 9
+        sendSVS(auxprof[8]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 37){ // profile button 10
+        sendSVS(auxprof[9]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 38){ // profile button 11
+        sendSVS(auxprof[10]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 39){ // profile button 12
+        sendSVS(auxprof[11]);
+        ir_recv_command = 0;
+        altprof = 0;
+      }
+      else if(ir_recv_command == 46){ // safe button
+        altprof = 2;
+        ir_recv_command = 0;
+      }
+      else{
+        altprof = 0;
+      }
+    } // end of altprof == 1
+
+
     if(ir_recv_address == 73 && TinyIRReceiverData.Flags != IRDATA_FLAGS_IS_REPEAT && aux7button == 1){ // if AUX7 was pressed and a profile button is pressed next
-      if(TESmartir == 1 || TESmartir == 3){
-        if(ir_recv_command == 11){ // profile button 1
-          extronSerialEwrite("tesmart",1,1);sendSVS(1);                                                                    
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 7){ // profile button 2
-          extronSerialEwrite("tesmart",2,1);sendSVS(2); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 3){ // profile button 3
-          extronSerialEwrite("tesmart",3,1);sendSVS(3); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 10){ // profile button 4
-          extronSerialEwrite("tesmart",4,1);sendSVS(4); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 6){ // profile button 5
-          extronSerialEwrite("tesmart",5,1);sendSVS(5); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 2){ // profile button 6
-          extronSerialEwrite("tesmart",6,1);sendSVS(6); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 9){ // profile button 7
-          extronSerialEwrite("tesmart",7,1);sendSVS(7); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 5){ // profile button 8
-          extronSerialEwrite("tesmart",8,1);sendSVS(8); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 1){ // profile button 9
-          extronSerialEwrite("tesmart",9,1);sendSVS(9); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 37){ // profile button 10
-          extronSerialEwrite("tesmart",10,1);sendSVS(10); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 38){ // profile button 11
-          extronSerialEwrite("tesmart",11,1);sendSVS(11); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 39){ // profile button 12
-          extronSerialEwrite("tesmart",12,1);sendSVS(12); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 56){ // aux1 button
-          extronSerialEwrite("tesmart",13,1);sendSVS(13); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 57){ // aux2 button
-          extronSerialEwrite("tesmart",14,1);sendSVS(14); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 58){ // aux3 button
-          extronSerialEwrite("tesmart",15,1);sendSVS(15); 
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
-        else if(ir_recv_command == 59){ // aux4 button
-          extronSerialEwrite("tesmart",16,1);sendSVS(16);
-          ir_recv_command = 0;
-          aux8button = 0;
-        }
+      if(ir_recv_command == 11){ // profile button 1
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",1,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",1,1);sendSVS(1);}                                                               
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 7){ // profile button 2
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",2,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",2,1);sendSVS(2);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 3){ // profile button 3
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",3,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",3,1);sendSVS(3);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 10){ // profile button 4
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",4,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",4,1);sendSVS(4);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 6){ // profile button 5
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",5,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",5,1);sendSVS(5);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 2){ // profile button 6
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",6,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",6,1);sendSVS(6);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 9){ // profile button 7
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",7,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",7,1);sendSVS(7);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 5){ // profile button 8
+        if(MTVir == 1 || MTVir == 3){extronSerialEwrite("viki",8,1);}
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",8,1);sendSVS(8);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 1){ // profile button 9
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",9,1);sendSVS(9);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 37){ // profile button 10
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",10,1);sendSVS(10);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 38){ // profile button 11
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",11,1);sendSVS(11);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 39){ // profile button 12
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",12,1);sendSVS(12);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 56){ // aux1 button
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",13,1);sendSVS(13);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 57){ // aux2 button
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",14,1);sendSVS(14);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 58){ // aux3 button
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",15,1);sendSVS(15);}
+        ir_recv_command = 0;
+        aux7button = 0;
+      }
+      else if(ir_recv_command == 59){ // aux4 button
+        if(TESmartir == 1 || TESmartir == 3){extronSerialEwrite("tesmart",16,1);sendSVS(16);}
+        ir_recv_command = 0;
+        aux7button = 0;
       }
 
       aux7button = 0;
@@ -1629,7 +1833,7 @@ void readIR(){
         }
       }
       else if(ir_recv_command == 62){
-        if(aux7button < 1)aux7button++;
+        if(TESmartir == 1 || TESmartir == 3 || MTVir == 1 || MTVir == 3)aux7button = 1;
         else dualSerialPrint("remote aux7");
       }
       else if(ir_recv_command == 61){
@@ -1681,7 +1885,8 @@ void readIR(){
         dualSerialPrint("remote genlock");
       }
       else if(ir_recv_command == 46){
-        dualSerialPrint("remote safe");
+        //dualSerialPrint("remote safe");
+        altprof = 1;
       }
       else if(ir_recv_command == 86){
         dualSerialPrint("remote pause");
@@ -2103,16 +2308,16 @@ void sendSVS(uint16_t num){
 
   digitalWrite(LED_BUILTIN,HIGH);
   Serial.print(F("\rSVS NEW INPUT="));
-  if(num != 0)Serial.print(num + offset);
+  if(num != 0)Serial.print(num + offset + altprofoffset);
   else Serial.print(num);;
   Serial.println(F("\r"));
   delay(1000);
   Serial.print(F("\rSVS CURRENT INPUT="));
-  if(num != 0)Serial.print(num + offset);
+  if(num != 0)Serial.print(num + offset + altprofoffset);
   else Serial.print(num);
   Serial.println(F("\r"));
   digitalWrite(LED_BUILTIN,LOW);
-  currentProf = num;
+  if(num < 1000)currentProf = num;
 } // end of sendSVS()
 
 void sendRBP(int prof){ // send Remote Button Profile
@@ -2235,7 +2440,24 @@ void sendProfile(int sprof, uint8_t sname, uint8_t soverride){
     }
   }
 
-  if(sprof != 0){
+  if(sprof == -1){ // only used in daisy-chain situations
+    if(mswitch[sname].On){
+      uint8_t prevOrder = mswitch[sname].Order;
+      for(uint8_t i = 0;i < mswitchSize;i++){
+        if(i == sname){
+          mswitch[i].Order = 0;
+          mswitch[i].King = 1;
+        }
+        else{
+          mswitch[i].King = 0;
+          if(mswitch[i].Order < prevOrder) mswitch[i].Order++;
+        }
+      }
+      sendSVS(mswitch[sname].Prof);
+    }
+
+  }
+  else if(sprof != 0){
     mswitch[sname].On = 1;
     if(SRS == 0 && sname == EXTRON1 && sprof > 0 && sprof < 12){ // save RBP as negative number
       mswitch[sname].Prof = -1*sprof;
@@ -3449,26 +3671,26 @@ void handleRoot(){
               <!-- MT-ViKi -->
               <div class="setting-row">
                 <span class="tooltip">
-                  MT-VIKI (AUX8 + Profile Button changes Input over Serial)
+                  MT-VIKI
                   <span class="tooltip-bubble">
-                  AUX8 + Profile button for SVS Profiles 1-8<br>
+                  AUX7 or AUX8 + Profile button changes input over Serial<br>
                   (IR Receiver must be connected)<br>
                   </span>
                 </span>
                 <select id="MTVir_input">
                   <option value="0">Disabled</option>
-                  <option value="1">Connected on Port1</option>
-                  <option value="2">Connected on Port2</option>
+                  <option value="1">Connected on Port1 / AUX7 + Profile Button</option>
+                  <option value="2">Connected on Port2 / AUX8 + Profile Button</option>
+                  <option value="3">Connected on Port1 & 2 / AUX7 or AUX8 + Profile Button</option>
                 </select>
               </div>
 
               <!-- TESmart -->
               <div class="setting-row">
                 <span class="tooltip">
-                  TESmart (AUX7 or AUX8 + Profile Button changes Input over Serial)
+                  TESmart
                   <span class="tooltip-bubble">
-                  AUX7 / AUX8 + Profile button for SVS Profiles 1-12<br>
-                  AUX7 / AUX8 + AUX1 - AUX4 for SVS Profiles 13-16<br>
+                  AUX7 or AUX8 + Profile button changes input over Serial<br>
                   (IR Receiver must be connected)<br>
                   </span>
                 </span>
@@ -3490,12 +3712,10 @@ void handleRoot(){
             <div class="settings-content">
               <div class="setting-row">
                 <span class="tooltip" style="text-align: center; font-weight: normal; font-size: 1rem; margin-bottom: 5px;">
-                  Assign SVS Profiles to AUX8 + Remote Buttons 1-12
+                  Assign SVS Profiles to SAFE + Remote Buttons 1-12
                   <span class="tooltip-bubble">
-                    Press AUX8 then a remote # button to load the assigned SVS profile.<br>
+                    Press SAFE then a remote # button to load the assigned SVS profile.<br>
                     (IR Receiver must be connected)<br><br>
-
-                    ** IR Receiver options above take priority over AUX8 if used **<br>
                   </span>
                 </span>
               </div>
@@ -3646,6 +3866,7 @@ void handleRoot(){
   let currentSortCol = null;
   let currentSortDir = 'asc';
   let currentPage = "main";
+  let isFetching = false;
 
   const fwType = ")rawliteral" + fwType + R"rawliteral(";
   const urlParams = new URLSearchParams(window.location.search);
@@ -4311,10 +4532,20 @@ void handleRoot(){
   loadData();
 
   refreshInterval = setInterval(async () => {
-    if (updatingConsoles) return; // skip refresh if user is editing
+    if (updatingConsoles || isFetching) return; // skip refresh if user is editing
+
+    isFetching = true;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 seconds
 
     try {
-      const res = await fetch('/getConsoles');
+      const res = await fetch('/getConsoles', {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
       const updated = await res.json();
 
       // Sync the local consoles array with backend
@@ -4335,7 +4566,7 @@ void handleRoot(){
       }
 
       // Update icons and highlights
-      consoles.forEach((c, i) => updateStatusIcon(i)); // Update icons
+      consoles.forEach((c, i) => updateStatusIcon(i));
 
       // Track King console
       const king = consoles.find(c => c.King === 1);
@@ -4344,9 +4575,16 @@ void handleRoot(){
       highlightProfiles();
 
     } catch (err) {
-      console.error("Error refreshing consoles:", err);
+      if (err.name === 'AbortError') {
+        console.warn('Fetch timed out after 4 seconds');
+      } else {
+        console.error("Error refreshing consoles:", err);
+      }
+    } finally {
+      isFetching = false;
     }
   }, 2500);
+
 
   function highlightProfiles() {
     let gameMatchFound = false;
