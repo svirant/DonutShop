@@ -22,9 +22,9 @@ See it in action: https://youtu.be/ldbfFbKzjh8
       - Ex: http://10.0.1.10/gameid vs http://ps1digital.local/gameid 
 
 ## Parts used
-  - **OTG Adapter:** https://www.amazon.com/dp/B0CQKXWRNF
-     - 18w version, not 60w
-     - not all OTG adapters work, this one works the best
+  - **OTG Adapter:** The following were tested on 4/27/2026. Not all OTG adapters work.
+     - [Jadebones USB C to USB OTG](https://a.co/d/07oWPikw) (grey color was tested)
+     - [USB C OTG Adapter, 2 in 1 USB-C to USB](https://a.co/d/07DvAKlc)
   - **Arduino Nano ESP32:** https://www.amazon.com/dp/B0CXHZXJXP
  <br /><br />
 
