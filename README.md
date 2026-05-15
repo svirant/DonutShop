@@ -35,7 +35,7 @@ See it in action: https://youtu.be/ldbfFbKzjh8
 |N64Digital | yes, confirmed first hand | |
 |RetroGEM N64 | yes | |
 |RetroGEM PS1 | yes | |
-| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | MemCardPro 2.0+ firmware requires https instead of http |
+| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | MCP 2.0 firmware requires https instead of http. <br> MCP 3.0 firmware requires disabling "WebUI v2 (Beta)" access and then you can use the http method. Ex: http://10.0.1.52/api/currentState |
 | Fenrir ?| | |
 | more on the way... |  
 
