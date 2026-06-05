@@ -2,6 +2,7 @@
 is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based on gameID. <br />
 
 <img src="./images/dsdemo.JPG"><br />
+<p align="center"><img src="./images/3ds.JPG"></p><br />
 
 <p align="center"><img width="500" src="./images/1ds.JPG"></p><br />
 
@@ -9,6 +10,7 @@ is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based 
 See it in action: https://youtu.be/ldbfFbKzjh8
 <br /><br />
 ## Updates
+  - NEW Terminal to relay [Remote Control Commands](https://consolemods.org/wiki/AV:RetroTINK-4K#Remote_Control_Commands). Toggle **Keyboard Nav Mode** to navigate the RT4K interface with keyboard keys.
   - New flash / setup method can now all be done via web browser.
   - ALL settings are now configured in the Web UI.
   - New Captive Portal for joining to your home network.
