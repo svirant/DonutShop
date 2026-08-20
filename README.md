@@ -56,17 +56,19 @@ See it in action: https://youtu.be/ldbfFbKzjh8
 4. Click **Connect** and select your device (typically starts with USB JTAG)
    - You may first need to connect to "Nano ESP32" and refresh the page for "USB JTAG" to appear in the Connect menu. 
 5. Click **Erase Flash** to format your device (required for LittleFS)
-6. Set Flash Address to **0x0** and Choose the downloaded file ```Donut_Shop_Full.bin```
-7. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
-8. Click **Program**
-9. Once complete, reconnect the USB cable of the device and continue **Setup** below...
+6. Download the latest ```DonutShop_vX.X.X_full.bin``` file from the Github Releases section.
+7. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
+8. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
+9. Click **Program**
+10. Once complete, reconnect the USB cable of the device and continue **Setup** below...
 
 ## Setup
 1. Upon reconnecting the USB cable, your board should **Successfully boot DonutShop** and leave you with an ORANGE led.
 2. With your computer or smartphone, join the broadcasted ```DonutShop_Setup``` WiFi to connect it to your home network.
 3. Follow the instructions listed and once complete, you should see a BLUE led indicating it's connected to WiFi and looking for addresses to connect to. If the BLUE led does not show, press the RST button one time.
 4. You should now be able to visit http://donutshop.local to add Consoles and gameIDs.
-5. For all future changes/uploads you can use the "Firmware Update" section in Settings to apply the latest listed _Update .bin file. Updating with the _Full version will not work.
+5. For all updates you can visit the "Firmware Update" section in Settings to "Check for Updates" and auto update to the latest.
+6. There is also a manual update section where you can apply any version's _update .bin file. Updating manually with the _full version will not work.
    
 ## General Setup
 
@@ -75,7 +77,7 @@ For Consoles, quickest if IP address is used versus Domain address:
 
 If you have multiple consoles on when DonutShop is booting, the console furthest down the list wins. If more than 2 consoles are active when one is powered off, the console that was on prior takes over. (Order is remembered.)<br>
 
-There are a multiple moving parts with this setup, and if you have issues, please use the "Donut_Shop_usb-only-test.ino". More info in the troublehshooting section at the end.
+There are a multiple moving parts with this setup, and if you have issues, please use the "DonutShop_usb-only-test.ino". More info in the troublehshooting section at the end.
 
 ## Adding gameIDs, Consoles, and other Options
 
@@ -112,7 +114,7 @@ I recommend the [Official Arduino IDE and guide](https://docs.arduino.cc/softwar
 The 🔵 and 🟢 leds indicate WiFi and usb serial/gameID lookup. This should help diagnose as a first step.
 
 If you are sure of these settings, and it still does not work, try the following to test the usb serial connection:
-  - Configure your Arduino Nano ESP32 with the provided "Donut_Shop_usb-only-test.ino". This is configured to only load "remote profile 8".
+  - Configure your Arduino Nano ESP32 with the provided "DonutShop_usb-only-test.ino". This is configured to only load "remote profile 8".
     - You can change the 8 to 1 - 9 if needed.
   - Verify that everything is connected with your OTG adapter and has power.
   - Press the reset button on top of the device and within a couple of seconds it should load the remote profile.
