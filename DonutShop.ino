@@ -16,7 +16,7 @@
 * along with this program.  If not,see <http://www.gnu.org/licenses/>.
 */
 
-#define FIRMWARE_VERSION "0.6.1"
+#define FIRMWARE_VERSION "0.6.3"
 #define FW_TYPE 'C'
 #define MAX_BYTES 50
 #define MAX_EINPUT 36
@@ -450,6 +450,7 @@ WebServer server(80);
 
 void DDloop(void *pvParameters);
 void GIDloop(void *pvParameters);
+void handleGithubAssetProxy();
 uint16_t gTime = 2000;
 uint8_t RMTuse = 0;
 
@@ -517,6 +518,7 @@ void setup(){
   server.on("/exportAll", HTTP_GET, handleExportAll);
   server.on("/importAll", HTTP_POST, handleImportAll);
   server.on("/update", HTTP_POST, handleUpdate, handleUpdateUpload);
+  server.on("/github-fw-asset", HTTP_GET, handleGithubAssetProxy);
   server.on("/cmd", HTTP_POST, handleSendCMD);
 
   server.begin();
@@ -525,7 +527,7 @@ void setup(){
   xTaskCreate(GIDloop,"GIDloop",16384,NULL,1,NULL);
 
   #if usbMode
-  CdcSerial.begin(115200);
+  CdcSerial.begin(2000000);
   if(!usbHost.begin()) Serial.printf("usbHost.begin failed: %s\n", usbHost.lastErrorName());
   #endif
   
@@ -2955,6 +2957,70 @@ void handleExportAll(){
   server.send(200, "application/json", out);
 } // end of handleExportAll()
 
+void handleGithubAssetProxy(){
+  String url = server.arg("url");
+  const String allowedPrefix =
+    "https://github.com/svirant/DonutShop/releases/download/";
+
+  if(!url.startsWith(allowedPrefix)){
+    server.send(400, "text/plain", "Invalid GitHub release asset URL");
+    return;
+  }
+
+  if(WiFi.status() != WL_CONNECTED){
+    server.send(503, "text/plain", "WiFi is not connected");
+    return;
+  }
+
+  WiFiClientSecure https;
+  https.setInsecure();
+  https.setHandshakeTimeout(15);
+
+  HTTPClient http;
+  http.setConnectTimeout(15000);
+  http.setTimeout(30000);
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+
+  if(!http.begin(https, url)){
+    server.send(502, "text/plain", "Could not start GitHub asset request");
+    return;
+  }
+
+  const int code = http.GET();
+  if(code != HTTP_CODE_OK){
+    const String msg =
+      String("GitHub asset HTTP ") + code + " (" +
+      HTTPClient::errorToString(code) + ")";
+    http.end();
+    https.stop();
+    server.send(502, "text/plain", msg);
+    return;
+  }
+
+  const int contentLength = http.getSize();
+  if(contentLength <= 0){
+    http.end();
+    https.stop();
+    server.send(502, "text/plain", "GitHub asset has no content length");
+    return;
+  }
+
+  server.sendHeader("Cache-Control", "no-store");
+  server.setContentLength((size_t)contentLength);
+  server.send(200, "application/octet-stream", "");
+
+  // HTTPClient streams directly from GitHub into the browser connection.
+  // The firmware is never accumulated in Nano RAM.
+  const int written = http.writeToStream(&server.client());
+
+  http.end();
+  https.stop();
+
+  // The browser verifies byte count and SHA-256, so a short write becomes a
+  // failed download and can never advance to /update.
+  (void)written;
+}
+
 void handleUpdate(){
   server.sendHeader("Connection", "close");
   if(Update.hasError()){
@@ -3039,7 +3105,7 @@ void handleRoot(){
   <html>
   <head>
     <meta charset="utf-8">
-    <title>Donut Shop</title>
+    <title>DonutShop</title>
     <style>
       body { font-family: sans-serif; }
       table { border-collapse: collapse; width: 80%; margin: 20px auto; }
@@ -3428,6 +3494,185 @@ void handleRoot(){
       #fwStatus {
         font-size: 0.95rem;
         white-space: nowrap;
+      }
+
+      .fw-github-row {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+        margin: 8px 0 10px;
+      }
+
+      .fw-check-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .fw-or {
+        font-size: 0.95rem;
+      }
+
+      #fwGithubCheck {
+        white-space: nowrap;
+        min-width: 0;
+      }
+
+      .settings-section.firmware-section #fwGithubCheck {
+        display: inline-block;
+        width: auto;
+        height: auto;
+        padding: 2px 6px;
+        font-size: 0.9rem;
+        line-height: normal;
+        margin: 0;
+      }
+
+
+      .fw-manual-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+      }
+
+      #fwGithubCheck,
+      #fwGithubInstall {
+        width: auto;
+        height: auto;
+        padding: 2px 6px;
+        font-size: 0.9rem;
+        line-height: normal;
+        border: 1px solid #888;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      #fwGithubCheck {
+        background: #e0e0e0;
+        color: #222;
+      }
+
+      #fwGithubInstall {
+        display: none;
+        background: #4CAF50;
+        color: white;
+      }
+
+      #fwGithubInstall:hover { background: #45a049; }
+
+      #fwGithubStatus {
+        font-size: 0.95rem;
+      }
+
+      #fwReleaseInfo {
+        display: none;
+        position: relative;
+        align-items: center;
+      }
+
+      #fwReleaseInfoBtn {
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: 1px solid #999;
+        border-radius: 50%;
+        background: transparent;
+        color: #333;
+        font-family: Georgia, serif;
+        font-style: italic;
+        font-weight: bold;
+        line-height: 20px;
+        text-align: center;
+        cursor: help;
+      }
+
+      #fwReleasePopover {
+        display: none;
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 8px);
+        transform: translateX(-50%);
+        width: min(430px, 70vw);
+        max-height: 320px;
+        overflow: auto;
+        z-index: 100;
+        padding: 12px 14px;
+        border: 1px solid #aaa;
+        border-radius: 8px;
+        background: #2f2f2f;
+        color: #fff;
+        box-shadow: 0 10px 28px rgba(0,0,0,.35);
+        font-size: 0.9rem;
+        line-height: 1.45;
+        text-align: left;
+        white-space: normal;
+      }
+
+      #fwReleaseNotes p {
+        margin: 0 0 8px;
+      }
+
+      #fwReleaseNotes ul,
+      #fwReleaseNotes ol {
+        margin: 6px 0 8px 20px;
+        padding: 0;
+      }
+
+      #fwReleaseNotes li {
+        margin: 3px 0;
+      }
+
+      #fwReleaseNotes code {
+        font-family: monospace;
+        background: rgba(255,255,255,.10);
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+
+      #fwReleaseNotes a {
+        color: #9fd3ff;
+      }
+
+      #fwReleaseInfo:hover #fwReleasePopover,
+      #fwReleaseInfo:focus-within #fwReleasePopover {
+        display: block;
+      }
+
+      #fwReleaseTitle {
+        display: block;
+        color: #fff;
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-decoration: underline;
+      }
+
+      #fwGithubProgress {
+        display: none;
+        width: min(520px, 100%);
+        margin-top: 2px;
+      }
+
+      #fwGithubProgressTrack {
+        height: 8px;
+        background: #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      #fwGithubProgressBar {
+        width: 0%;
+        height: 100%;
+        background: #4CAF50;
+        transition: width .12s linear;
+      }
+
+      #fwGithubProgressText {
+        display: block;
+        margin-top: 5px;
+        font-size: 0.9rem;
       }
 
       #termWidget {
@@ -3925,8 +4170,30 @@ void handleRoot(){
             </span>
           </span>
            )rawliteral" + fwVer + R"rawliteral(
+          <div class="fw-github-row">
+            <div class="fw-check-row">
+              <button type="button" id="fwGithubCheck">Check for Updates</button>
+              <button type="button" id="fwGithubInstall">Install Latest</button>
+              <span id="fwReleaseInfo">
+                <button type="button" id="fwReleaseInfoBtn" aria-label="Show release notes">i</button>
+                <span id="fwReleasePopover">
+                  <a id="fwReleaseTitle" href="https://github.com/svirant/DonutShop/releases" target="_blank" rel="noopener noreferrer">Release notes</a>
+                  <span id="fwReleaseNotes"></span>
+                </span>
+              </span>
+              <span id="fwGithubStatus"></span>
+            </div>
+            <div id="fwGithubProgress">
+              <div id="fwGithubProgressTrack"><div id="fwGithubProgressBar"></div></div>
+              <span id="fwGithubProgressText"></span>
+            </div>
+            <div class="fw-manual-row" id="fwManualRow">
+              <span class="fw-or">or</span>
+              <input type="file" id="fwFile" name="update" accept=".bin" form="fwForm">
+            </div>
+          </div>
+
           <form id="fwForm" class="fw-form">
-            <input type="file" id="fwFile" name="update" accept=".bin">
             <div class="fw-upload-row">
               <button type="submit" id="fwUploadBtn" class="fw-button">Upload Firmware</button>
               <span id="fwStatus"></span>
@@ -3952,6 +4219,7 @@ void handleRoot(){
   const MAX_CMD_HISTORY = 999;
 
   const fwType = ")rawliteral" + fwType + R"rawliteral(";
+  const donutShopVersion = ")rawliteral" + fwVer + R"rawliteral(";
   const urlParams = new URLSearchParams(window.location.search);
 
   function settingsPage() {
@@ -5214,6 +5482,473 @@ void handleRoot(){
 
       // Run once after settings loaded
       updateAutoMatrixVisibility();
+  });
+
+  /* GitHub firmware updater */
+  const DONUTSHOP_RELEASE_API = "https://api.github.com/repos/svirant/DonutShop/releases/latest";
+
+  let fwGithubRelease = null;
+
+  function parseSemVer(v) {
+    const m = String(v || "").trim().replace(/^v/i, "")
+      .match(/^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/);
+    return m ? [+m[1], +m[2], +m[3]] : null;
+  }
+
+  function compareSemVer(a, b) {
+    const av = parseSemVer(a), bv = parseSemVer(b);
+    if (!av || !bv) return null;
+    for (let i = 0; i < 3; i++) {
+      if (av[i] < bv[i]) return -1;
+      if (av[i] > bv[i]) return 1;
+    }
+    return 0;
+  }
+
+  function githubFwSetProgress(pct, text) {
+    const wrap = document.getElementById("fwGithubProgress");
+    const bar = document.getElementById("fwGithubProgressBar");
+    const label = document.getElementById("fwGithubProgressText");
+    wrap.style.display = "block";
+    bar.style.width = Math.max(0, Math.min(100, pct || 0)).toFixed(1) + "%";
+    label.textContent = text || "";
+  }
+
+  function githubFwResetProgress() {
+    document.getElementById("fwGithubProgress").style.display = "none";
+    document.getElementById("fwGithubProgressBar").style.width = "0%";
+    document.getElementById("fwGithubProgressText").textContent = "";
+  }
+
+  const sha256Hex = async (bytes) => {
+    // WebCtl is normally served from http://donutshop.local. Web Crypto's
+    // crypto.subtle is not available in all browsers on non-secure origins,
+    // so use a compact local SHA-256 implementation instead.
+    const src = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    const bitLen = src.length * 8;
+    const paddedLen = ((src.length + 9 + 63) >> 6) << 6;
+    const msg = new Uint8Array(paddedLen);
+    msg.set(src);
+    msg[src.length] = 0x80;
+
+    // SHA-256 length is a 64-bit big-endian integer. Firmware images here are
+    // far below 512 MB, but write both halves correctly anyway.
+    const hi = Math.floor(bitLen / 0x100000000);
+    const lo = bitLen >>> 0;
+    const n = paddedLen;
+    msg[n-8] = (hi >>> 24) & 255;
+    msg[n-7] = (hi >>> 16) & 255;
+    msg[n-6] = (hi >>> 8) & 255;
+    msg[n-5] = hi & 255;
+    msg[n-4] = (lo >>> 24) & 255;
+    msg[n-3] = (lo >>> 16) & 255;
+    msg[n-2] = (lo >>> 8) & 255;
+    msg[n-1] = lo & 255;
+
+    const K = new Uint32Array([
+      0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+    ]);
+
+    const H = new Uint32Array([
+      0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,
+      0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19
+    ]);
+    const W = new Uint32Array(64);
+    const rotr = (x,n) => (x >>> n) | (x << (32-n));
+
+    for (let off = 0; off < msg.length; off += 64) {
+      for (let i = 0; i < 16; i++) {
+        const j = off + i*4;
+        W[i] = ((msg[j] << 24) | (msg[j+1] << 16) |
+                (msg[j+2] << 8) | msg[j+3]) >>> 0;
+      }
+      for (let i = 16; i < 64; i++) {
+        const x = W[i-15], y = W[i-2];
+        const s0 = (rotr(x,7) ^ rotr(x,18) ^ (x >>> 3)) >>> 0;
+        const s1 = (rotr(y,17) ^ rotr(y,19) ^ (y >>> 10)) >>> 0;
+        W[i] = (W[i-16] + s0 + W[i-7] + s1) >>> 0;
+      }
+
+      let a=H[0], b=H[1], c=H[2], d=H[3];
+      let e=H[4], f=H[5], g=H[6], h=H[7];
+
+      for (let i = 0; i < 64; i++) {
+        const S1 = (rotr(e,6) ^ rotr(e,11) ^ rotr(e,25)) >>> 0;
+        const ch = ((e & f) ^ (~e & g)) >>> 0;
+        const t1 = (h + S1 + ch + K[i] + W[i]) >>> 0;
+        const S0 = (rotr(a,2) ^ rotr(a,13) ^ rotr(a,22)) >>> 0;
+        const maj = ((a & b) ^ (a & c) ^ (b & c)) >>> 0;
+        const t2 = (S0 + maj) >>> 0;
+
+        h=g; g=f; f=e; e=(d+t1)>>>0;
+        d=c; c=b; b=a; a=(t1+t2)>>>0;
+      }
+
+      H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0;
+      H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+      H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0;
+      H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+    }
+
+    return Array.from(H)
+      .map(v => v.toString(16).padStart(8,"0")).join("");
+  };
+
+  const fetchAssetWithProgress = async (url, onProgress) => {
+    const proxyUrl = "/github-fw-asset?url=" + encodeURIComponent(url);
+    const r = await fetch(proxyUrl, {cache:"no-store"});
+    if (!r.ok) throw new Error(`firmware download HTTP ${r.status}`);
+
+    const total = +(r.headers.get("content-length") || 0);
+    if (!r.body || !r.body.getReader) {
+      const buf = await r.arrayBuffer();
+      if (onProgress) onProgress(buf.byteLength, buf.byteLength);
+      return buf;
+    }
+
+    const reader = r.body.getReader();
+    const chunks = [];
+    let got = 0;
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      got += value.byteLength;
+      if (onProgress) onProgress(got, total);
+    }
+
+    const out = new Uint8Array(got);
+    let off = 0;
+    for (const c of chunks) {
+      out.set(c, off);
+      off += c.byteLength;
+    }
+    return out.buffer;
+  };
+
+  const resolveReleaseDigest = async (release, updateAsset) => {
+    if (!release || !updateAsset) {
+      throw new Error("GitHub release asset metadata is missing");
+    }
+
+    // Current GitHub release-asset metadata may include "digest":
+    // "sha256:<64 hex>". Prefer it when present because it is bound to
+    // the exact asset.
+    const digest = String(updateAsset.digest || "");
+    const m = /^sha256:([0-9a-f]{64})$/i.exec(digest);
+    if (m) return m[1].toLowerCase();
+
+    // Compatibility fallback: accept a version-matched .sha256 companion asset.
+    const shaName = updateAsset.name + ".sha256";
+    const shaAsset = (release.assets || []).find(a => a.name === shaName);
+    if (!shaAsset) throw new Error(
+      `No SHA-256 digest available for ${updateAsset.name}`
+    );
+
+    const shaProxyUrl =
+      "/github-fw-asset?url=" + encodeURIComponent(shaAsset.browser_download_url);
+    const r = await fetch(shaProxyUrl, {cache:"no-store"});
+    if (!r.ok) throw new Error(`SHA-256 file download HTTP ${r.status}`);
+    const body = await r.text();
+    const sm = /(?:^|\s)([0-9a-f]{64})(?:\s|$)/i.exec(body);
+    if (!sm) throw new Error(`Invalid SHA-256 file: ${shaAsset.name}`);
+    return sm[1].toLowerCase();
+  };
+
+  function renderReleaseMarkdown(md) {
+    const esc = s => String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+    const inline = s => {
+      let x = esc(s);
+      x = x.replace(/`([^`]+)`/g, "<code>$1</code>");
+      x = x.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      x = x.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+      x = x.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+      x = x.replace(/_([^_]+)_/g, "<em>$1</em>");
+      x = x.replace(
+        /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+      );
+      return x;
+    };
+
+    const lines = String(md || "").replace(/\r\n?/g, "\n").split("\n");
+    let html = "";
+    let list = null;
+    let para = [];
+
+    const flushPara = () => {
+      if (!para.length) return;
+      html += "<p>" + inline(para.join(" ")) + "</p>";
+      para = [];
+    };
+    const closeList = () => {
+      if (!list) return;
+      html += `</${list}>`;
+      list = null;
+    };
+
+    for (const raw of lines) {
+      const line = raw.trim();
+
+      if (!line) {
+        flushPara();
+        closeList();
+        continue;
+      }
+
+      let m = /^[-*+]\s+(.+)$/.exec(line);
+      if (m) {
+        flushPara();
+        if (list !== "ul") {
+          closeList();
+          list = "ul";
+          html += "<ul>";
+        }
+        html += "<li>" + inline(m[1]) + "</li>";
+        continue;
+      }
+
+      m = /^\d+[.)]\s+(.+)$/.exec(line);
+      if (m) {
+        flushPara();
+        if (list !== "ol") {
+          closeList();
+          list = "ol";
+          html += "<ol>";
+        }
+        html += "<li>" + inline(m[1]) + "</li>";
+        continue;
+      }
+
+      closeList();
+      para.push(line);
+    }
+
+    flushPara();
+    closeList();
+
+    return html || "<p>No release notes were provided.</p>";
+  }
+
+  const checkGithubFirmware = async () => {
+    const checkBtn = document.getElementById("fwGithubCheck");
+    const installBtn = document.getElementById("fwGithubInstall");
+    const status = document.getElementById("fwGithubStatus");
+    const info = document.getElementById("fwReleaseInfo");
+
+    checkBtn.disabled = true;
+    installBtn.style.display = "none";
+    info.style.display = "none";
+    githubFwResetProgress();
+    status.style.color = "";
+    status.textContent = "Checking GitHub...";
+
+    try {
+      const r = await fetch(DONUTSHOP_RELEASE_API, {
+        cache:"no-store",
+        headers:{"Accept":"application/vnd.github+json"}
+      });
+
+      if (r.status === 404) {
+        fwGithubRelease = null;
+        status.textContent = "No published DonutShop release found yet.";
+        return;
+      }
+      if (!r.ok) throw new Error(`GitHub API HTTP ${r.status}`);
+
+      const release = await r.json();
+      const tagVersion = String(release.tag_name || "").replace(/^v/i, "");
+      const relation = compareSemVer(donutShopVersion, tagVersion);
+      if (relation === null) {
+        throw new Error(`Cannot compare installed ${donutShopVersion} with release ${release.tag_name || "(no tag)"}`);
+      }
+
+      // Only accept the versioned OTA application image
+      const expectedName = `DonutShop_v${tagVersion}_update.bin`;
+      const updateAsset = (release.assets || []).find(a => a.name === expectedName);
+      if (!updateAsset) {
+        throw new Error(`Release ${release.tag_name} is missing ${expectedName}`);
+      }
+
+      // Cross-check filename version against tag before ever offering install.
+      const fm = /^DonutShop_v(\d+\.\d+\.\d+)_update\.bin$/i.exec(updateAsset.name);
+      if (!fm || compareSemVer(fm[1], tagVersion) !== 0) {
+        throw new Error(`Release asset/tag version mismatch: ${updateAsset.name} vs ${release.tag_name}`);
+      }
+
+      fwGithubRelease = {release, tagVersion, updateAsset};
+
+      document.getElementById("fwReleaseTitle").textContent =
+        `Donut Shop v${tagVersion} release notes`;
+      document.getElementById("fwReleaseTitle").href =
+        release.html_url || "https://github.com/svirant/DonutShop/releases";
+      document.getElementById("fwReleaseNotes").innerHTML =
+        renderReleaseMarkdown(release.body || "");
+      info.style.display = "inline-flex";
+
+      if (relation < 0) {
+        installBtn.textContent = `Install v${tagVersion}`;
+        installBtn.style.display = "inline-block";
+        status.style.color = "#2e7d32";
+        status.textContent = `New version available: v${tagVersion}`;
+      } else if (relation === 0) {
+        status.style.color = "";
+        status.textContent = `Up to date — v${tagVersion} is installed.`;
+      } else {
+        status.style.color = "#a06000";
+        status.textContent =
+          `Installed v${donutShopVersion} is newer than GitHub v${tagVersion}; downgrade blocked.`;
+      }
+    } catch (e) {
+      fwGithubRelease = null;
+      status.style.color = "red";
+      status.textContent = "GitHub check failed: " + e.message;
+    } finally {
+      checkBtn.disabled = false;
+    }
+  };
+
+  const installGithubFirmware = async () => {
+    if (!fwGithubRelease) return;
+
+    const {release, tagVersion} = fwGithubRelease;
+    const expectedName = `DonutShop_v${tagVersion}_update.bin`;
+    const updateAsset = release && Array.isArray(release.assets)
+      ? release.assets.find(a => a && a.name === expectedName)
+      : null;
+
+    const installBtn = document.getElementById("fwGithubInstall");
+    const checkBtn = document.getElementById("fwGithubCheck");
+    const status = document.getElementById("fwGithubStatus");
+
+    if (compareSemVer(donutShopVersion, tagVersion) !== -1) {
+      status.style.color = "red";
+      status.textContent = "Install blocked: target is not newer than installed firmware.";
+      return;
+    }
+
+    if (!updateAsset) {
+      status.style.color = "red";
+      status.textContent = `Update failed: release asset ${expectedName} is missing.`;
+      return;
+    }
+
+    if (!confirm(
+      `Install Donut Shop v${tagVersion}?\n\n` +
+      `Asset: ${updateAsset.name}\n` +
+      `The Donut Shop will reboot after the update.`
+    )) return;
+
+    const manualRow = document.getElementById("fwManualRow");
+    if (manualRow) manualRow.style.display = "none";
+
+    installBtn.disabled = true;
+    checkBtn.disabled = true;
+    status.style.color = "";
+    status.textContent = "Preparing update...";
+
+    try {
+      console.log("[FWUPDATE] release asset", {
+        tag: release.tag_name,
+        name: updateAsset.name,
+        size: updateAsset.size,
+        digest: updateAsset.digest || "(not provided)"
+      });
+
+      const expectedSha = await resolveReleaseDigest(release, updateAsset);
+
+      const firmware = await fetchAssetWithProgress(
+        updateAsset.browser_download_url,
+        (done,total) => {
+          const pct = total ? (100 * done / total) : 0;
+          githubFwSetProgress(
+            pct,
+            total
+              ? `Downloading ${updateAsset.name}... ${Math.round(pct)}%`
+              : `Downloading ${updateAsset.name}... ${(done/1048576).toFixed(2)} MB`
+          );
+        }
+      );
+
+      status.textContent = "Verifying SHA-256...";
+      githubFwSetProgress(100, "Verifying SHA-256...");
+      const actualSha = await sha256Hex(firmware);
+      if (actualSha !== expectedSha) {
+        throw new Error(
+          `SHA-256 mismatch (expected ${expectedSha}, got ${actualSha})`
+        );
+      }
+
+      status.textContent = "SHA-256 verified. Uploading to Donut Shop...";
+      githubFwSetProgress(0, "Uploading verified firmware... 0%");
+
+      const blob = new Blob([firmware], {type:"application/octet-stream"});
+      const formData = new FormData();
+      formData.append("update", blob, updateAsset.name);
+
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/update", true);
+
+        xhr.upload.onprogress = event => {
+          if (!event.lengthComputable) return;
+          const pct = 100 * event.loaded / event.total;
+          githubFwSetProgress(
+            pct,
+            `Installing v${tagVersion}... ${Math.round(pct)}%`
+          );
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200) resolve();
+          else reject(new Error(xhr.responseText || `OTA HTTP ${xhr.status}`));
+        };
+        xhr.onerror = () => reject(new Error("OTA upload connection failed"));
+        xhr.send(formData);
+      });
+
+      githubFwSetProgress(100, "Update complete. Rebooting...");
+      status.style.color = "#2e7d32";
+      status.textContent = `Donut Shop v${tagVersion} installed. Rebooting...`;
+
+      setTimeout(function checkESP() {
+        fetch("/", {cache:"no-store"})
+          .then(resp => {
+            if (resp.ok) location.reload();
+            else setTimeout(checkESP, 1000);
+          })
+          .catch(() => setTimeout(checkESP, 1000));
+      }, 3000);
+
+    } catch (e) {
+      status.style.color = "red";
+      status.textContent = "Update failed: " + e.message;
+      const manualRow = document.getElementById("fwManualRow");
+      if (manualRow) manualRow.style.display = "flex";
+      installBtn.disabled = false;
+      checkBtn.disabled = false;
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("fwGithubCheck")
+      .addEventListener("click", checkGithubFirmware);
+    document.getElementById("fwGithubInstall")
+      .addEventListener("click", installGithubFirmware);
   });
 
   document.addEventListener("DOMContentLoaded", function() {
