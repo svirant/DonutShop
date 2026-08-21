@@ -1,10 +1,10 @@
 # DonutShop
-is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based on gameID. <br />
+is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RetroTink 4K based on gameID. <br />
 
-<img src="./images/dsdemo.JPG"><br />
-<p align="center"><img src="./images/3ds.JPG"></p><br />
+<p align="center"><img src="./images/1.JPG"><br />
+<p align="center"><img src="./images/2.JPG"><br />
 
-<p align="center"><img width="500" src="./images/1ds.JPG"></p><br />
+<p align="center"><img width="500" src="./images/3.JPG"></p><br />
 
 
 See it in action: https://youtu.be/ldbfFbKzjh8
