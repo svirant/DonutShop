@@ -10,6 +10,7 @@ is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RT4K based 
 See it in action: https://youtu.be/ldbfFbKzjh8
 <br /><br />
 ## Updates
+  - .3mf added for printing a case.
   - NEW Terminal to relay [Remote Control Commands](https://consolemods.org/wiki/AV:RetroTINK-4K#Remote_Control_Commands). Toggle **Keyboard Nav Mode** to navigate the RT4K interface with keyboard keys.
   - New flash / setup method can now all be done via web browser.
   - ALL settings are now configured in the Web UI.
@@ -27,7 +28,10 @@ See it in action: https://youtu.be/ldbfFbKzjh8
   - **OTG Adapter:** The following were tested on 4/27/2026. Not all OTG adapters work.
      - [Jadebones USB C to USB OTG](https://a.co/d/07oWPikw) (grey color was tested)
      - [USB C OTG Adapter, 2 in 1 USB-C to USB](https://a.co/d/07DvAKlc)
-  - **Arduino Nano ESP32:** https://www.amazon.com/dp/B0CXHZXJXP
+  - **Nano ESP32:** pick one based on availability
+     - [WaveShare Nano ESP32](https://a.co/d/0731doKA)
+     - [Arduino Nano ESP32](https://a.co/d/0hoIzB7Y)
+
  <br /><br />
 
 ## gameID devices currently supported
