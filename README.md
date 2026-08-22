@@ -9,7 +9,25 @@ is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RetroTink 4
 
 See it in action: https://youtu.be/ldbfFbKzjh8
 <br /><br />
+## DonutShop ft. RT4K WebCtl (work in progress v0.7.0)
+ - Requires RT4K v1.75+ fw
+ - This version integrates the gameID functionality into the RT4K WebCtl internal test app. It's still very much a work in progress, but I wanted to share the experience thus far.
+ - In a nutshell, with WebCtl you gain:
+    - Dashboard of RT4K status, ability to change Input/Output
+    - Remote + OSD
+    - File Manager with bulk file operations including, copy/move/delete/download,drag & drop uploads.
+    - SVS Simulator (for example - load SVS profiles by #), load/download ANY profile on the SD Card
+    - Stage latest experimental firmware over Wi-Fi directly from Github
+<br>
+<p align="center"><img src="./images/5.JPG"><br />
+<p align="center"><img src="./images/6.JPG"><br />
+<p align="center"><img src="./images/7.JPG"><br />
+<p align="center"><img src="./images/8.JPG"><br />
+<p align="center"><img src="./images/9.JPG"><br />
+<p align="center"><img src="./images/10.JPG"><br /></p><br>
+
 ## Updates
+  - WIP DonutShop ft. WebCtl now available to experience the new features of the RT4K v1.75+ firmware
   - .3mf added for printing a case.
   - NEW Terminal to relay [Remote Control Commands](https://consolemods.org/wiki/AV:RetroTINK-4K#Remote_Control_Commands). Toggle **Keyboard Nav Mode** to navigate the RT4K interface with keyboard keys.
   - New flash / setup method can now all be done via web browser.
