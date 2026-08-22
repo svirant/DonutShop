@@ -6,13 +6,15 @@ is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RetroTink 4
 
 <p align="center"><img width="500" src="./images/3.JPG"></p><br />
 
+See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 
-See it in action: https://youtu.be/ldbfFbKzjh8
+  - Note: In version v0.7.0 you can still access this gameID only version at http://donutshop.loca/gameid
+    
 <br /><br />
 ## DonutShop ft. RT4K WebCtl (work in progress v0.7.0)
  - Requires RT4K v1.75+ fw
  - This version integrates the gameID functionality into the RT4K WebCtl internal test app. It's still very much a work in progress, but I wanted to share the experience thus far.
- - In a nutshell, with WebCtl you gain:
+ - In a nutshell, with WebCtl on DonutShop, you gain:
     - Dashboard of RT4K status, ability to change Input/Output
     - Remote + OSD
     - File Manager with bulk file operations including, copy/move/delete/download,drag & drop uploads.
