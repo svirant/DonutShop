@@ -8,7 +8,7 @@ is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RetroTink 4
 
 See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 
-  - Note: In version v0.7.0 you can still access this gameID only version at http://donutshop.loca/gameid
+  - Note: In version v0.7.0 you can still access this gameID only version at http://donutshop.local/gameid
     
 <br /><br />
 ## DonutShop ft. RT4K WebCtl (work in progress v0.7.0)
@@ -29,7 +29,7 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 <p align="center"><img src="./images/10.JPG"><br /></p><br>
 
 ## Updates
-  - WIP DonutShop ft. WebCtl now available to experience the new features of the RT4K v1.75+ firmware
+  - WiP DonutShop ft. RT4K WebCtl now available to experience the new features of the RT4K v1.75+ firmware
   - .3mf added for printing a case.
   - NEW Terminal to relay [Remote Control Commands](https://consolemods.org/wiki/AV:RetroTINK-4K#Remote_Control_Commands). Toggle **Keyboard Nav Mode** to navigate the RT4K interface with keyboard keys.
   - New flash / setup method can now all be done via web browser.
@@ -74,7 +74,7 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 | 🔴| | Power| No way to control as it's hardwired in. May just need to cover with tape. |
 
 ## Flashing 
-1. Download the latest ```.bin``` files listed above
+1. Download the latest ```.bin``` files from Releases
 2. Open [ESP Tool](https://espressif.github.io/esptool-js/) in Chrome, Brave, or Edge
 3. Connect your Arduino Nano ESP32 via USB and double click the RST button immediately following to enter **recovery mode** (a GREEN led will strobe when successful)
 4. Click **Connect** and select your device (typically starts with USB JTAG)
