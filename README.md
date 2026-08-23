@@ -48,7 +48,6 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
   - **OTG Adapter:** The following were tested on 4/27/2026. Not all OTG adapters work.
      - [Jadebones USB C to USB OTG](https://a.co/d/07oWPikw) (grey color was tested)
      - [USB C OTG Adapter, 2 in 1 USB-C to USB](https://a.co/d/07DvAKlc)
-     - EU option: [IVIVTOR USB-C OTG Cable Adapter](https://www.amazon.co.uk/dp/B0F8N12YQD)
   - **Nano ESP32:** pick one based on availability
      - [WaveShare Nano ESP32](https://a.co/d/0731doKA)
      - [Arduino Nano ESP32](https://a.co/d/0hoIzB7Y)
