@@ -91,8 +91,10 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 2. With your computer or smartphone, join the broadcasted ```DonutShop_Setup``` WiFi to connect it to your home network.
 3. Follow the instructions listed and once complete, you should see a BLUE led indicating it's connected to WiFi and looking for addresses to connect to. If the BLUE led does not show, press the RST button one time.
 4. You should now be able to visit http://donutshop.local to add Consoles and gameIDs.
-5. For all updates you can visit the "Firmware Update" section in Settings to "Check for Updates" and auto update to the latest.
-6. There is also a manual update section where you can apply any version's _update .bin file. Updating manually with the _full version will not work.
+5. Disconnect the Arduino Nano ESP32 and connect it to the OTG adapter. Connect the OTG assembly to the RT4K and everything should power on.
+6. Reconfirm connectivity to http://donutshop.local and refresh the page after the RT4K has fully booted.
+7. For all updates you can visit the "Firmware Update" section in Settings to "Check for Updates" and auto update to the latest.
+8. There is also a manual update section where you can apply any version's _update .bin file. Updating manually with the _full version will not work.
    
 ## General Setup
 
