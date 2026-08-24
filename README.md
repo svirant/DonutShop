@@ -85,12 +85,12 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 5. With the **Connect menu** still open, single click the Nano button once more and you should catch the device changing it's name to USB JTAG or Nora.
 6. Quickly select this device and click **Connect**
      - If you get errors going forward, try changing to a lower Baudrate.
-8. Click **Erase Flash** to format your device (required for LittleFS)
-9. Download the latest ```DonutShop_vX.X.X_full.bin``` file from the Github Releases section.
-10. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
-11. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
-12. Click **Program**
-13. Once complete, reconnect the USB cable of the device and continue **Setup** below...
+7. Click **Erase Flash** to format your device (required for LittleFS)
+8. Download the latest ```DonutShop_vX.X.X_full.bin``` file from the Github Releases section.
+9. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
+10. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
+11. Click **Program**
+12. Once complete, reconnect the USB cable of the device and continue **Setup** below...
 
 ## Setup
 1. Upon reconnecting the USB cable, your board should **Successfully boot DonutShop** and leave you with an ORANGE led.
