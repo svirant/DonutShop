@@ -47,14 +47,14 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 ## Parts used
 (affiliate links, support [RetroRGB!](https://retrorgb.com/))
   - **OTG Adapter:** The following were tested on 4/27/2026. Not all OTG adapters work.
-     - [Jadebones USB C to USB OTG](amzn.to/4cRdskT)
+     - [Jadebones USB C to USB OTG](https://amzn.to/4cRdskT)
      - [USB C OTG Adapter, 2 in 1 USB-C to USB](https://a.co/d/07DvAKlc)
      - IT: [IVIVTOR USB-C OTG Cable Adapter](https://www.amazon.it/dp/B0F8N12YQD) (tested on 8/24/26)
   - **Nano ESP32:** pick one based on availability
-     - [WaveShare Nano ESP32](amzn.to/45FE30D) or from [Aliexpress](s.click.aliexpress.com/e/_c3cHQg5V)
-     - [Arduino Nano ESP32](amzn.to/4xXGsQm)
+     - [WaveShare Nano ESP32](https://amzn.to/45FE30D) or from [Aliexpress](https://s.click.aliexpress.com/e/_c3cHQg5V)
+     - [Arduino Nano ESP32](https://amzn.to/4xXGsQm)
   - **USB-A to C cable**
-     - [Short USB A to USB C Cable](amzn.to/4qvE7cV)
+     - [Short USB A to USB C Cable](https://amzn.to/4qvE7cV)
 
  <br /><br />
 
