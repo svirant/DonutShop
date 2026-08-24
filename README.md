@@ -80,17 +80,11 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 ## Flashing 
 1. Download the latest ```.bin``` files from Releases
 2. Open [ESP Tool](https://espressif.github.io/esptool-js/) in Chrome, Brave, or Edge
-3. Connect your Arduino Nano ESP32 via USB directly to your PC or Mac (not through a usb-hub) and double click the RST button immediately following to enter **recovery mode** (a GREEN led will strobe when successful)
-4. On MacOS:
-   - Click **Connect** and select your device (typically says Nano ESP32)
-     - You will get a "Connecting... Error" in the console, this is normal.
-     - If you continue to get errors going forward, try changing to a lower Baudrate.
-   - Refresh the page and click **Connect** once more. You should now see different options. Select USB JTAG or Nora.
-5. On Windows 10:
-   - Clicking **Connect** opens up a selection menu, and you should see a device named TinyUSB.
-   - With the Connect menu still open, single click the Nano button once more and you should catch it changing it's name to USB JTAG.
-   - Quickly select this device and click **Connect**
-     - If you get errors connecting, try lowering the Baudrate
+3. Connect your Arduino Nano ESP32 via USB directly to your PC or Mac (not through a usb-hub) and double click the Nano's RST button immediately following to enter **recovery mode** (a GREEN led will strobe when successful)
+4. Clicking **Connect** opens up a selection menu and you should see something like (depending on OS and Nano brand) Nano ESP32 or TinyUSB
+5. With the **Connect menu** still open, single click the Nano button once more and you should catch the device changing it's name to USB JTAG or Nora.
+6. Quickly select this device and click **Connect**
+     - If you get errors going forward, try changing to a lower Baudrate.
 8. Click **Erase Flash** to format your device (required for LittleFS)
 9. Download the latest ```DonutShop_vX.X.X_full.bin``` file from the Github Releases section.
 10. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
