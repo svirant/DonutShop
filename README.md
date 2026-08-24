@@ -82,14 +82,14 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 2. Open [ESP Tool](https://espressif.github.io/esptool-js/) in Chrome, Brave, or Edge
 3. Connect your Arduino Nano ESP32 via USB directly to your PC or Mac (not through a usb-hub) and double click the RST button immediately following to enter **recovery mode** (a GREEN led will strobe when successful)
 4. On MacOS:
-   a. Click **Connect** and select your device (typically says Nano ESP32)
+   - Click **Connect** and select your device (typically says Nano ESP32)
      - You will get a "Connecting... Error" in the console, this is normal.
      - If you continue to get errors going forward, try changing to a lower Baudrate.
-   b. Refresh the page and click **Connect** once more. You should now see different options. Select USB JTAG or Nora.
+   - Refresh the page and click **Connect** once more. You should now see different options. Select USB JTAG or Nora.
 5. On Windows 10:
-   a. Click **Connect** and you should see a device named TinyUSB.
-   b. With the Connect box still open, single click the Nano button once more and you should catch it changing it's name to USB JTAG.
-   c. Quickly select this device and click **Connect**
+   - Clicking **Connect** opens up a selection menu, and you should see a device named TinyUSB.
+   - With the Connect menu still open, single click the Nano button once more and you should catch it changing it's name to USB JTAG.
+   - Quickly select this device and click **Connect**
      - If you get errors connecting, try lowering the Baudrate
 8. Click **Erase Flash** to format your device (required for LittleFS)
 9. Download the latest ```DonutShop_vX.X.X_full.bin``` file from the Github Releases section.
