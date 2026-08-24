@@ -140,7 +140,7 @@ I recommend the [Official Arduino IDE and guide](https://docs.arduino.cc/softwar
 
 ## Thank you!
   - All the Thanks honestly goes to Mike Chi of RetroTink for early access to the documentation and most importantly the WebCtl test app that made this possible.
-  - Bob @ RetroRGB for always supporting and being a invaluable resource to the community.
+  - Bob @ RetroRGB for always supporting and being an invaluable resource to the community.
   - Huge thanks to @CielFricker249 / "Aru" on the RetroTink discord for the gameID idea and testing of the Donut Dongle project as well!
 
 ## TroubleShooting ##
