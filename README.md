@@ -48,6 +48,7 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
   - **OTG Adapter:** The following were tested on 4/27/2026. Not all OTG adapters work.
      - [Jadebones USB C to USB OTG](https://a.co/d/07oWPikw) (grey color was tested)
      - [USB C OTG Adapter, 2 in 1 USB-C to USB](https://a.co/d/07DvAKlc)
+     - IT: [IVIVTOR USB-C OTG Cable Adapter](https://www.amazon.it/dp/B0F8N12YQD) (tested on 8/24/26)
   - **Nano ESP32:** pick one based on availability
      - [WaveShare Nano ESP32](https://a.co/d/0731doKA)
      - [Arduino Nano ESP32](https://a.co/d/0hoIzB7Y)
@@ -77,14 +78,16 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 1. Download the latest ```.bin``` files from Releases
 2. Open [ESP Tool](https://espressif.github.io/esptool-js/) in Chrome, Brave, or Edge
 3. Connect your Arduino Nano ESP32 via USB directly to your PC or Mac (not through a usb-hub) and double click the RST button immediately following to enter **recovery mode** (a GREEN led will strobe when successful)
-4. Click **Connect** and select your device (typically starts with USB JTAG)
-   - You may first need to connect to "Nano ESP32" and refresh the page for "USB JTAG" to appear in the Connect menu. 
-5. Click **Erase Flash** to format your device (required for LittleFS)
-6. Download the latest ```DonutShop_vX.X.X_full.bin``` file from the Github Releases section.
-7. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
-8. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
-9. Click **Program**
-10. Once complete, reconnect the USB cable of the device and continue **Setup** below...
+4. Click **Connect** and select your device (typically says Nano ESP32)
+   - You will get a "Connecting... Error" in the console, this is normal.
+   - If you continue to get errors going forward, try changing to a lower Baudrate.
+5. Refresh the page and click **Connect** once more. You should now see different options. Select USB JTAG or Nora.
+6. Click **Erase Flash** to format your device (required for LittleFS)
+7. Download the latest ```DonutShop_vX.X.X_full.bin``` file from the Github Releases section.
+8. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
+9. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
+10. Click **Program**
+11. Once complete, reconnect the USB cable of the device and continue **Setup** below...
 
 ## Setup
 1. Upon reconnecting the USB cable, your board should **Successfully boot DonutShop** and leave you with an ORANGE led.
