@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>DonutShop Firmware Installer</title>
+  <meta name="description" content="Install DonutShop firmware on an Arduino or Waveshare Nano ESP32.">
+  <link rel="stylesheet" href="./style.css?v=dfu-rst-v1">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="hero">
+      <h1>DonutShop Firmware Installer</h1>
+    </header>
+
+    <section id="browserWarning" class="notice hidden" role="alert">
+      WebUSB and Web Serial are required. Use Chrome or Edge on desktop.
+    </section>
+
+    <section class="firmware-card" aria-labelledby="firmwareTitle">
+      <h2 id="firmwareTitle">DonutShop</h2>
+      <div id="releaseVersion" class="version">—</div>
+      <div id="releaseDate" class="date">—</div>
+      <div class="device">Arduino / Waveshare Nano ESP32 compatible.</div>
+      <a id="releaseLink" class="release-link hidden" href="#" target="_blank" rel="noopener noreferrer">Release Notes</a>
+
+      <ol class="install-steps">
+        <li>Connect your Nano ESP32 via USB directly to your PC or Mac (not through a USB hub) and double click the Nano's RST button to enter <strong>recovery mode</strong> (a <strong>GREEN</strong> LED will strobe when successful).</li>
+        <li>Click <strong>“Connect and Flash”</strong>, select <strong>“Nano ESP32 (bootloader)”</strong>, then press the Nano's <strong>RST button once</strong> when prompted.</li>
+        <li>After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.</li>
+      </ol>
+
+      <button id="startButton" class="flash-button" disabled>Connect and Flash</button>
+    </section>
+
+    <section class="terminal-card" aria-label="Installer terminal">
+      <div class="terminal-titlebar">
+        <span>Terminal</span>
+        <span id="statusDot" class="status-dot" aria-hidden="true"></span>
+      </div>
+      <pre id="consoleOutput" class="console-output" aria-live="polite"></pre>
+    </section>
+
+    <div id="successBox" class="result success-box hidden" role="status">
+      DonutShop installed successfully.
+    </div>
+    <div id="errorBox" class="result error-box hidden" role="alert"></div>
+
+    <div class="hidden" aria-hidden="true">
+      <span id="releaseBadge"></span>
+      <span id="fullName"></span>
+      <span id="recoveryName"></span>
+      <span id="helperName"></span>
+      <progress id="fullProgress" value="0" max="100"></progress>
+      <progress id="recoveryProgress" value="0" max="100"></progress>
+      <span id="fullPercent">0%</span>
+      <span id="recoveryPercent">0%</span>
+    </div>
+  </main>
+
+  <script src="./config.js?v=dfu-rst-v1"></script>
+  <script type="module" src="./installer.js?v=dfu-rst-v1"></script>
+</body>
+</html>
