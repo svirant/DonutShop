@@ -1,14 +1,14 @@
 {
-  "tag": "v0.7.9",
-  "name": "DonutShop v0.7.9",
-  "published_at": "2026-08-29T07:16:58Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.9",
-  "body": "**Maintenance**\r\n- Websocket message cleanup\r\n- Paused gameID checks while \"stage latest experimental\" and \"Check for Updates\" are performed. DMA memory mgmt.\r\n\r\n**UI Experience**\r\n- WebCtl reconnects automatically after a RT4K firmware update",
+  "tag": "v0.7.10",
+  "name": "DonutShop v0.7.10",
+  "published_at": "2026-08-30T22:16:11Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.10",
+  "body": "**Misc**\r\n- Initial RT6X CE support has been added\r\n- Cleaned up i2c card layout in the Expert section\r\n- WebCtl websocket reconnects automatically after waking / disconnected\r\n- For 0:/profile/ and subfolders, Profiles can be sorted by Type or Name by clicking on \"Name\"\r\n  - Type: .rt4 files are listed A->Z first, then .rt6 files. Mimics the On Screen \"Load From File\" menu\r\n  - Name: files are listed A->Z regardless of type. Default behavior for all other 0:/ folders.\r\n- Profiles in 0:/profile/ and subfolders now have 4k / 6X icons that represent the model that created the profile.",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.7.9_full.bin",
-    "size": 1862448,
-    "sha256": "9235db68e8be34c9afaf6f05611de8e7efd9b2669115ba0bce4557d2bfd0d455"
+    "name": "DonutShop_v0.7.10_full.bin",
+    "size": 1866784,
+    "sha256": "5691452ba913c37dfe1744e39bd4526329e5bc7613e0a16927913a3df68d2792"
   },
   "recovery": {
     "name": "nora_recovery.bin",
