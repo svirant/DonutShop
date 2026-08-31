@@ -1,14 +1,14 @@
 {
-  "tag": "v0.7.10",
-  "name": "DonutShop v0.7.10",
-  "published_at": "2026-08-30T22:16:11Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.10",
-  "body": "**Misc**\r\n- Initial RT6X CE support has been added\r\n- Cleaned up i2c card layout in the Expert section\r\n- WebCtl websocket reconnects automatically after waking / disconnected\r\n- For 0:/profile/ and subfolders, Profiles can be sorted by Type or Name by clicking on \"Name\"\r\n  - Type: .rt4 files are listed A->Z first, then .rt6 files. Mimics the On Screen \"Load From File\" menu\r\n  - Name: files are listed A->Z regardless of type. Default behavior for all other 0:/ folders.\r\n- Profiles in 0:/profile/ and subfolders now have 4k / 6X icons that represent the model that created the profile.",
+  "tag": "v0.7.11",
+  "name": "DonutShop v0.7.11",
+  "published_at": "2026-08-31T05:19:42Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.11",
+  "body": "**Files viewer/editor**\r\n- Double-click .**txt** and .**html** files to view in-browser. **Txt** files can also be edited and saved. \r\n  - Great for:\r\n    - Instant viewing of guides and documentation found through-out the SD card image. \r\n    - Making immediate changes to various features that use .txt files.",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.7.10_full.bin",
-    "size": 1866784,
-    "sha256": "5691452ba913c37dfe1744e39bd4526329e5bc7613e0a16927913a3df68d2792"
+    "name": "DonutShop_v0.7.11_full.bin",
+    "size": 1883104,
+    "sha256": "58c6c6f07d449834afed4d667d68831e83be941be2bb8020c5016291339e6b8e"
   },
   "recovery": {
     "name": "nora_recovery.bin",
