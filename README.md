@@ -87,7 +87,7 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 | 🔴| | Power| No way to control as it's hardwired in. May just need to cover with tape. |
 
 ## Flashing 
-1. Open the [DonutShop Firmware Installer](https://svirant.github.io/DonutShop/install/) in Chrome, Brave, or Edge
+1. Open the [DonutShop Firmware Installer](https://svirant.github.io/DonutShop/install/) in Brave. (Troubleshooting the issue with Official Chrome and Edge atm)
 2. Once complete, reconnect the USB cable of the device and continue **Setup** below...
 3. The previous Flashing steps are at the bottom of the page as a fallback.
 
