@@ -21,8 +21,10 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
     - File Manager with bulk file operations including, copy/move/delete/download,drag & drop uploads.
       - Load profiles by double-clicking on the filename, allowing you to quickly try out new profiles.
       - Save live profile to current directory with the option to change name
+      - View .txt & .html files immediately in-browser. Great for reading various guides found on the SD Card image.
+      - Edit & Save .txt files in-browser for immediate changes to various features that use .txt files.
     - SVS Simulator (for example - load SVS profiles by #)
-    - Stage latest experimental firmware over Wi-Fi directly from Github
+    - Stage & Flash latest experimental firmware over Wi-Fi directly from Github
 
 <br>
 <p align="center"><img src="./images/5.JPG"><br />
