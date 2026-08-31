@@ -1,14 +1,14 @@
 {
-  "tag": "v0.7.11",
-  "name": "DonutShop v0.7.11",
-  "published_at": "2026-08-31T05:19:42Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.11",
-  "body": "**Files viewer/editor**\r\n- Double-click .**txt** and .**html** files to view in-browser. **Txt** files can also be edited and saved. \r\n  - Great for:\r\n    - Instant viewing of guides and documentation found through-out the SD card image. \r\n    - Making immediate changes to various features that use .txt files.",
+  "tag": "v0.7.12",
+  "name": "DonutShop v0.7.12",
+  "published_at": "2026-08-31T16:11:26Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.12",
+  "body": "- fixed bug where .html file viewer would sometimes show all white instead of contents until a manual page refresh was performed",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.7.11_full.bin",
-    "size": 1883104,
-    "sha256": "58c6c6f07d449834afed4d667d68831e83be941be2bb8020c5016291339e6b8e"
+    "name": "DonutShop_v0.7.12_full.bin",
+    "size": 1883808,
+    "sha256": "d3e958347bf12bd274a695427e86d8c9a6bfc2214253b58554bbe43b278331e8"
   },
   "recovery": {
     "name": "nora_recovery.bin",
