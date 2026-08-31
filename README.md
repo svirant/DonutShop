@@ -32,7 +32,9 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 <p align="center"><img src="./images/7.JPG"><br />
 <p align="center"><img src="./images/8.JPG"><br />
 <p align="center"><img src="./images/9.JPG"><br />
-<p align="center"><img src="./images/10.JPG"><br /></p><br>
+<p align="center"><img src="./images/10.JPG"><br />
+<p align="center"><img src="./images/11.JPG"><br />
+<p align="center"><img src="./images/12.JPG"><br /></p><br>
 
 ## Updates
   - New Installer only takes a few clicks.
@@ -136,9 +138,10 @@ I recommend the [Official Arduino IDE and guide](https://docs.arduino.cc/softwar
 <br />
 
 ## Thank you!
-  - All the Thanks honestly goes to Mike Chi of RetroTink for early access to the documentation and most importantly the WebCtl test app that made this possible.
+  - BIG Thanks goes to Mike Chi of RetroTink for early access to the documentation and most importantly the WebCtl test app that made this possible.
+  - The RetroTink Discord for beta testing feedback.
   - Bob @ RetroRGB for always supporting and being an invaluable resource to the community.
-  - Huge thanks to @CielFricker249 / "Aru" on the RetroTink discord for the gameID idea and testing of the Donut Dongle project as well!
+  - Huge thanks to @CielFricker249 / "Aru" on the RetroTink Discord for the gameID idea and testing of the Donut Dongle project as well!
 
 ## TroubleShooting ##
 
