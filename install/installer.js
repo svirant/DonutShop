@@ -15,6 +15,8 @@ const ui = {
   recoveryName: $("recoveryName"),
   helperName: $("helperName"),
   startButton: $("startButton"),
+  jtagButton: $("jtagButton"),
+  jtagInstructions: $("jtagInstructions"),
   statusDot: $("statusDot"),
   fullProgress: $("fullProgress"),
   recoveryProgress: $("recoveryProgress"),
@@ -46,6 +48,7 @@ let images = null;
 let busy = false;
 let stage = "connect";
 let watchTimer = null;
+let showJtagFallback = false;
 let watchDeadline = 0;
 let lastProgressLog = [-10, -10];
 
@@ -108,6 +111,7 @@ function setBusy(value){
   busy = value;
   if(value){
     ui.startButton.disabled = true;
+    ui.jtagButton.disabled = true;
     setStatus("busy");
   }
   else{
@@ -118,6 +122,14 @@ function setBusy(value){
 function updateButtonForStage(){
   ui.startButton.classList.remove("reset-cue", "reset-done");
 
+  const showJtag = stage === "wait-reset" && showJtagFallback;
+  ui.jtagButton.classList.toggle("hidden", !showJtag);
+  ui.jtagButton.disabled = busy || !showJtag;
+  ui.jtagInstructions.classList.toggle("hidden", !showJtag);
+
+  const showStart = stage === "connect" || stage === "done";
+  ui.startButton.classList.toggle("hidden", !showStart);
+
   if(!images){
     ui.startButton.disabled = true;
     ui.startButton.textContent = "Connect and Flash";
@@ -127,16 +139,6 @@ function updateButtonForStage(){
   if(stage === "connect"){
     ui.startButton.disabled = false;
     ui.startButton.textContent = "Connect and Flash";
-  }
-  else if(stage === "wait-reset"){
-    ui.startButton.disabled = true;
-    ui.startButton.textContent = "Press RST";
-    ui.startButton.classList.add("reset-cue");
-  }
-  else if(stage === "flashing"){
-    ui.startButton.disabled = true;
-    ui.startButton.textContent = "Press RST";
-    ui.startButton.classList.add("reset-cue", "reset-done");
   }
   else if(stage === "done"){
     ui.startButton.disabled = true;
@@ -594,10 +596,15 @@ function stopBootloaderWatcher(){
     clearInterval(watchTimer);
     watchTimer = null;
   }
+
 }
 
 function startBootloaderWatcher(){
   stopBootloaderWatcher();
+
+  showJtagFallback = true;
+  updateButtonForStage();
+  log("Click “Authorize USB JTAG”, leave the chooser open, press RST on the Nano once, then select the USB JTAG device when it appears.");
 
   watchTimer = setInterval(async () => {
     if(busy || stage !== "wait-reset"){
@@ -609,6 +616,7 @@ function startBootloaderWatcher(){
 
       if(ports.length === 1){
         stopBootloaderWatcher();
+        showJtagFallback = false;
         log("RST detected. USB JTAG is ready; continuing automatically.");
         stage = "flashing";
         updateButtonForStage();
@@ -650,6 +658,7 @@ async function beginFactoryFlow(){
     log("Preparing reset step…");
     await sleep(3000);
 
+    showJtagFallback = false;
     stage = "wait-reset";
     setBusy(false);
     updateButtonForStage();
@@ -660,7 +669,7 @@ async function beginFactoryFlow(){
     log("========================================");
     log("Waiting for USB JTAG…");
 
-    // Keep the same button in the Press RST state. The page watches for
+    // Keep the same button in the Press RST Once state. The page watches for
     // the already-authorized 303A:1001 device and continues automatically.
     startBootloaderWatcher();
   }
@@ -670,7 +679,7 @@ async function beginFactoryFlow(){
     if(error?.name === "NotFoundError"){
       stage = "connect";
       updateButtonForStage();
-      showError("Device was not selected. Reconnect Nano ESP32 and Double-click RST until the GREEN LED strobes, then click “Connect and Flash” again.");
+      showError("Nano recovery mode was not selected. Double-click RST until the GREEN LED strobes, then click “Connect and Flash” again.");
     }
     else{
       stage = "connect";
@@ -699,18 +708,25 @@ async function flashBootloaderDevice(portOverride = null, automatic = false){
 
   let transport = null;
   let loaderConnected = false;
+  let manualPermissionGranted = false;
 
   try{
     let port = portOverride;
 
     if(!port){
-      log("Select “Espressif USB JTAG/serial debug unit” in Brave/Chrome/Edge.");
+      log("Select “Espressif USB JTAG/serial debug unit” to authorize it for this browser profile.");
       port = await navigator.serial.requestPort({
         filters: [{
           usbVendorId: cfg.device.bootVendorId,
           usbProductId: cfg.device.bootProductId
         }]
       });
+      manualPermissionGranted = true;
+
+      // The user successfully selected/authorized the device. The
+      // authorization instructions are no longer needed.
+      showJtagFallback = false;
+      updateButtonForStage();
     }
     else{
       log("Using previously authorized USB JTAG device.");
@@ -796,7 +812,7 @@ async function flashBootloaderDevice(portOverride = null, automatic = false){
     setBusy(false);
     updateButtonForStage();
     ui.successBox.classList.remove("hidden");
-    log("Installation complete. Continue with Setup");
+    log("Installation complete.");
   }
   catch(error){
     if(transport){
@@ -809,6 +825,7 @@ async function flashBootloaderDevice(portOverride = null, automatic = false){
     setBusy(false);
 
     if(automatic && !loaderConnected){
+      showJtagFallback = false;
       stage = "wait-reset";
       updateButtonForStage();
       setStatus("good");
@@ -818,6 +835,30 @@ async function flashBootloaderDevice(portOverride = null, automatic = false){
       return;
     }
 
+    if(!automatic && !loaderConnected && error?.name === "NotFoundError"){
+      showJtagFallback = true;
+      stage = "wait-reset";
+      updateButtonForStage();
+      setStatus("good");
+      log("Click “Authorize USB JTAG”, leave the chooser open, press RST on the Nano once, then select the USB JTAG device when it appears.");
+      startBootloaderWatcher();
+      showJtagFallback = true;
+      updateButtonForStage();
+      return;
+    }
+
+    if(!automatic && !loaderConnected && manualPermissionGranted){
+      showJtagFallback = false;
+      stage = "wait-reset";
+      updateButtonForStage();
+      setStatus("good");
+      log(`USB JTAG permission was granted, but the connection was not ready yet: ${error?.message || error}`);
+      log("Waiting for USB JTAG to become available…");
+      startBootloaderWatcher();
+      return;
+    }
+
+    showJtagFallback = true;
     stage = "wait-reset";
     updateButtonForStage();
     showError(`Installation failed: ${error?.message || error}`);
@@ -830,8 +871,21 @@ async function handlePrimaryAction(){
   }
 }
 
+async function handleJtagAction(){
+  if(busy || stage !== "wait-reset"){
+    return;
+  }
+
+  // Keep the authorization instructions visible while the native chooser
+  // is open so the user can still reference them.
+  showJtagFallback = true;
+  updateButtonForStage();
+  await flashBootloaderDevice(null, false);
+}
+
 function init(){
   ui.startButton.addEventListener("click", handlePrimaryAction);
+  ui.jtagButton.addEventListener("click", handleJtagAction);
 
   if(!("usb" in navigator) || !("serial" in navigator)){
     ui.browserWarning.classList.remove("hidden");
