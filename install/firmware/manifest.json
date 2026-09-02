@@ -1,14 +1,14 @@
 {
-  "tag": "v0.7.14",
-  "name": "DonutShop v0.7.14",
-  "published_at": "2026-09-02T17:32:31Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.14",
-  "body": "**Mobile Client**\r\n- Remote OSD now has button navigation overlay\r\n- WebCtl is now cellphone friendly\r\n\r\n**Setup**\r\n- Hostname is now customizable during initial setup. ONLY \"a-z\", \"0-9\", and \"-\" (hyphen) characters are allowed. (edge hyphens not allowed)\r\n\r\n**UX**\r\n- progress bar is now cumulative for all bulk file operations",
+  "tag": "v0.7.15",
+  "name": "DonutShop v0.7.15",
+  "published_at": "2026-09-02T23:33:12Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.15",
+  "body": "**OSD Mirror**\r\n- New \"compact\" checkbox (enabled by default) sizes the desktop version of OSD Mirror nicely in your browser.\r\n  - unchecking restores the original unscaled version\r\n  - does not apply to mobile version\r\n\r\n**Misc**\r\n- New websocket checks prevent multiple WebCtl clients from interfering with a transfer",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.7.14_full.bin",
-    "size": 1929664,
-    "sha256": "e4f5ff8079d0f599ba85222f90cccb37f54f3da73ad10ab6cc2a2da208b02288"
+    "name": "DonutShop_v0.7.15_full.bin",
+    "size": 1936048,
+    "sha256": "fb6e1f854d0e66026d4a4ccaabb7c101be53ab56c8f65043eac9e361a15483ef"
   },
   "recovery": {
     "name": "nora_recovery.bin",
