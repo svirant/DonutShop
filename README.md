@@ -89,7 +89,8 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 ## Flashing 
 1. Open the [DonutShop Firmware Installer](https://svirant.github.io/DonutShop/install/) in Brave/Chrome/Edge.
 2. Once complete, reconnect the USB cable of the device and continue **Setup** below...
-3. The previous Flashing steps are at the bottom of the page as a fallback.
+3. If you get an error pertaining to "Timed out while claiming DFU interface 0", try the Alternative Flashing steps at the bottom of the page.
+   - So far this has only been the case for Windows 11 and support is not currently implemented.
 
 ## Setup
 1. Upon reconnecting the USB cable, your board should **Successfully boot DonutShop** and leave you with an ORANGE led.
@@ -165,7 +166,7 @@ If you are sure of these settings, and it still does not work, try the following
 3. Clicking **Connect** opens up a selection menu and you should see something like (depending on OS and Nano brand) Nano ESP32 or TinyUSB
 4. With the **Connect menu** still open, single click the Nano button once more and quickly select the new device named USB JTAG; click **Connect**
     - If it disappears, click the Nano button again for it to return. Be faster this time! ;)
-    - If you get errors going forward, try changing to a lower Baudrate
+4b. If Step 4 is not working, Refresh the page and click **Connect** once more. You should now see USB JTAG available for **Connect**
 5. Click **Erase Flash** to format your device (required for LittleFS)
 6. Download the latest files from the Github Releases section.
 7. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
