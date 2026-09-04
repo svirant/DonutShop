@@ -166,11 +166,11 @@ If you are sure of these settings, and it still does not work, try the following
 3. Clicking **Connect** opens up a selection menu and you should see something like (depending on OS and Nano brand) Nano ESP32 or TinyUSB
 4. With the **Connect menu** still open, single click the Nano button once more and quickly select the new device named USB JTAG; click **Connect**
     - If it disappears, click the Nano button again for it to return. Be faster this time! ;)
-4b. If Step 4 is not working, In the **Connect** menu, select "Nano ESP32" or "Tiny USB" and click Connect.
+5. If Step 4 is not working, In the **Connect** menu, select "Nano ESP32" or "Tiny USB" and click Connect.
     - Refresh the page and click **Connect** once more. You should now see USB JTAG available for **Connect**
-5. Click **Erase Flash** to format your device (required for LittleFS)
-6. Download the latest files from the Github Releases section.
-7. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
-8. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
-9. Click **Program**
-10. Once complete, reconnect the USB cable of the device and continue **Setup** below...
+6. Click **Erase Flash** to format your device (required for LittleFS)
+7. Download the latest files from the Github Releases section.
+8. Set Flash Address to **0x0** and Choose the file ```DonutShop_vX.X.X_full.bin```
+9. Click **Add File**, set the next Flash Address to **0xF70000**, Choose ```nora_recovery.bin```
+10. Click **Program**
+11. Once complete, reconnect the USB cable of the device and continue **Setup** below...
