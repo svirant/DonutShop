@@ -89,8 +89,7 @@ See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 ## Flashing 
 1. Open the [DonutShop Firmware Installer](https://svirant.github.io/DonutShop/install/) in Brave/Chrome/Edge.
 2. Once complete, reconnect the USB cable of the device and continue **Setup** below...
-3. If you get an error pertaining to "Timed out while claiming DFU interface 0", try the Alternative Flashing steps at the bottom of the page.
-   - So far this has only been the case for Windows 11 and support is not currently implemented.
+3. If you get an error, try the Alternative Flashing steps at the bottom of the page.
 
 ## Setup
 1. Upon reconnecting the USB cable, your board should **Successfully boot DonutShop** and leave you with an ORANGE led.
