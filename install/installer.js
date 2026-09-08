@@ -191,7 +191,8 @@ async function prepareRelease(){
     setStatus("good");
     updateButton();
     log("Firmware is ready.");
-    log("Click Connect and Flash, then choose the same Nano serial device that works on Espressif's esptool-js site.");
+    log("NORMAL BOOT TEST: the Nano must NOT be in the green-strobing Arduino DFU recovery mode.");
+    log("Connect and Flash will show only ESP32-S3 USB JTAG/Serial 303A:1001.");
   }
   catch(error){
     showError(error?.message || String(error));
@@ -218,11 +219,14 @@ async function directSerialFlash(){
   let loaderConnected = false;
 
   try{
-    log("Opening the standard Web Serial chooser (same API path as Espressif esptool-js)…");
+    log("Opening Web Serial chooser filtered to ESP32-S3 USB JTAG/Serial 303A:1001…");
 
-    // Deliberately unfiltered for this diagnostic revision. This mirrors the
-    // Espressif esptool-js example and lets us select the exact same Nano port.
-    const port = await navigator.serial.requestPort();
+    // This revision intentionally refuses the Arduino 2341:0070 recovery/DFU
+    // composite device. The goal is to test the normally running ESP32-S3
+    // Hardware CDC / USB-JTAG-Serial path used by esptool-js.
+    const port = await navigator.serial.requestPort({
+      filters: [{ usbVendorId: 0x303A, usbProductId: 0x1001 }]
+    });
     const info = port.getInfo();
     log(`Selected serial device USB ${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}.`);
 
@@ -248,7 +252,12 @@ async function directSerialFlash(){
       debugLogging: false
     });
 
-    log("Connecting with ESPLoader.main()…");
+    if(info.usbVendorId !== 0x303A || info.usbProductId !== 0x1001){
+      throw new Error(`Wrong serial device selected (${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}). This test requires 303A:1001.`);
+    }
+
+    log("Confirmed ESP32-S3 USB JTAG/Serial 303A:1001.");
+    log("Connecting with ESPLoader.main(); esptool-js should automatically use its USB-JTAG-Serial reset strategy…");
     const chipName = await loader.main();
     loaderConnected = true;
     log(`Detected chip: ${chipName}`);

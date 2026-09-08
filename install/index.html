@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ffffff">
   <title>DonutShop Firmware Installer</title>
   <meta name="description" content="Install DonutShop firmware on an Arduino or Waveshare Nano ESP32.">
-  <link rel="stylesheet" href="./style.css?v=direct-webserial-test-v1">
+  <link rel="stylesheet" href="./style.css?v=direct-usbjtag-test-v2">
 </head>
 <body>
   <main class="page-shell">
@@ -28,8 +28,8 @@
       </span>
       <div class="section-divider" aria-hidden="true"></div>
       <ol class="install-steps">
-        <li>Connect the Nano ESP32 directly to your PC or Mac. For this test, put it in the <strong>same state that works with the Espressif esptool-js site</strong> (double-click RST for the GREEN recovery strobe if that is how you have been testing).</li>
-        <li>Click <strong>“Connect and Flash”</strong> and select the <strong>same Nano serial device</strong> you select on the Espressif esptool-js site.</li>
+        <li>Connect the Nano ESP32 directly to your PC or Mac and let <strong>DonutShop boot normally</strong>. <strong>Do not double-click RST.</strong> If the GREEN recovery LED is strobing, press RST once to leave recovery and return to the normal firmware.</li>
+        <li>Click <strong>“Connect and Flash”</strong>. This test only allows <strong>ESP32-S3 USB JTAG/Serial 303A:1001</strong>; the Arduino DFU/CDC device 2341:0070 will not be offered.</li>
         <li>After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.</li>
       </ol>
       <button id="startButton" class="flash-button" disabled>Connect and Flash</button>
@@ -59,7 +59,7 @@
     </div>
   </main>
 
-  <script src="./config.js?v=direct-webserial-test-v1"></script>
-  <script type="module" src="./installer.js?v=direct-webserial-test-v1"></script>
+  <script src="./config.js?v=direct-usbjtag-test-v2"></script>
+  <script type="module" src="./installer.js?v=direct-usbjtag-test-v2"></script>
 </body>
 </html>
