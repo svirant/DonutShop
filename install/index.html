@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#ffffff">
   <title>DonutShop Firmware Installer</title>
   <meta name="description" content="Install DonutShop firmware on an Arduino or Waveshare Nano ESP32.">
-  <link rel="stylesheet" href="./style.css?v=authorize-instructions-v1">
+  <link rel="stylesheet" href="./style.css?v=direct-webserial-test-v1">
 </head>
 <body>
   <main class="page-shell">
-<section id="browserWarning" class="notice hidden" role="alert">
-      WebUSB and Web Serial are required. Use Chrome or Edge on desktop.
+    <section id="browserWarning" class="notice hidden" role="alert">
+      Web Serial is required. Use Chrome or Edge on desktop.
     </section>
 
     <section class="firmware-card" aria-labelledby="firmwareTitle">
@@ -26,18 +26,13 @@
         <a id="releaseLink" class="release-link" href="#" target="_blank" rel="noopener noreferrer" aria-describedby="releaseNotesTooltip">Release Notes</a>
         <span id="releaseNotesTooltip" class="release-notes-tooltip" role="tooltip"></span>
       </span>
-
       <div class="section-divider" aria-hidden="true"></div>
-
       <ol class="install-steps">
-        <li>Connect your Nano ESP32 via USB directly to your PC or Mac (not through a USB hub) and double click the Nano's RST button to enter <strong>recovery mode</strong> (a <strong>GREEN</strong> LED will strobe when successful).</li>
-        <li>Click <strong>“Connect and Flash”</strong> and select <strong>“Nano ESP32 (bootloader)”</strong>. When <strong>“Authorize USB JTAG”</strong> appears, follow the instruction shown below the button.</li>
+        <li>Connect the Nano ESP32 directly to your PC or Mac. For this test, put it in the <strong>same state that works with the Espressif esptool-js site</strong> (double-click RST for the GREEN recovery strobe if that is how you have been testing).</li>
+        <li>Click <strong>“Connect and Flash”</strong> and select the <strong>same Nano serial device</strong> you select on the Espressif esptool-js site.</li>
         <li>After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.</li>
       </ol>
-
       <button id="startButton" class="flash-button" disabled>Connect and Flash</button>
-      <button id="jtagButton" class="jtag-button hidden" type="button">Authorize USB JTAG</button>
-      <p id="jtagInstructions" class="jtag-instructions hidden">Click <strong>“Authorize USB JTAG”</strong>, leave the chooser open, press RST on the Nano once, then select the USB JTAG device when it appears.</p>
     </section>
 
     <div id="successBox" class="result success-box hidden" role="status">
@@ -57,7 +52,6 @@
       <span id="releaseBadge"></span>
       <span id="fullName"></span>
       <span id="recoveryName"></span>
-      <span id="helperName"></span>
       <progress id="fullProgress" value="0" max="100"></progress>
       <progress id="recoveryProgress" value="0" max="100"></progress>
       <span id="fullPercent">0%</span>
@@ -65,7 +59,7 @@
     </div>
   </main>
 
-  <script src="./config.js?v=dfu-rst-v1"></script>
-  <script type="module" src="./installer.js?v=chooser-instructions-v2"></script>
+  <script src="./config.js?v=direct-webserial-test-v1"></script>
+  <script type="module" src="./installer.js?v=direct-webserial-test-v1"></script>
 </body>
 </html>
