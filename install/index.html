@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
-  <title>DonutShop Firmware Installer</title>
+  <title>DonutShop Test 5 - USB Persist Helper + USB JTAG</title>
   <meta name="description" content="Install DonutShop firmware on an Arduino or Waveshare Nano ESP32.">
-  <link rel="stylesheet" href="./style.css?v=two-stage-webserial-test-v4">
+  <link rel="stylesheet" href="./style.css?v=direct-usbjtag-test-v2">
 </head>
 <body>
   <main class="page-shell">
@@ -28,9 +28,8 @@
       </span>
       <div class="section-divider" aria-hidden="true"></div>
       <ol class="install-steps">
-        <li>Double-click <strong>RST</strong> so the Nano enters the GREEN-strobing Arduino recovery state.</li>
-        <li>Click <strong>“Connect and Flash”</strong> and select the Arduino Nano ESP32 recovery serial device. This first connection is used only to make the Nano re-enumerate as USB JTAG.</li>
-        <li>When the button changes to <strong>“Connect USB JTAG”</strong>, click it and select <strong>Espressif USB JTAG/serial debug unit</strong>. Flashing will then begin automatically.</li>
+        <li>Before using this page, run the included <strong>DFU_to_USB_JTAG_USB_PERSIST_TEST.ino</strong> helper on the Nano. The helper should leave the ESP32-S3 visible as persistent <strong>USB JTAG/Serial 303A:1001</strong>.</li>
+        <li>Once <strong>303A:1001</strong> is present, click <strong>“Connect and Flash”</strong> and select the ESP32-S3 USB JTAG/Serial device. This test does not touch Arduino DFU interface 0.</li>
         <li>After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.</li>
       </ol>
       <button id="startButton" class="flash-button" disabled>Connect and Flash</button>
@@ -60,7 +59,7 @@
     </div>
   </main>
 
-  <script src="./config.js?v=two-stage-webserial-test-v4"></script>
-  <script type="module" src="./installer.js?v=two-stage-webserial-test-v4"></script>
+  <script src="./config.js?v=direct-usbjtag-test-v2"></script>
+  <script type="module" src="./installer.js?v=direct-usbjtag-test-v2"></script>
 </body>
 </html>

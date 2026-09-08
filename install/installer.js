@@ -26,7 +26,6 @@ const ui = {
 let images = null;
 let busy = false;
 let done = false;
-let phase = "transition"; // transition 2341:0070 -> 303A:1001, then flash
 let lastProgressLog = [-10, -10];
 
 function log(message){
@@ -82,15 +81,7 @@ function showError(message){
 
 function updateButton(){
   ui.startButton.disabled = busy || !images || done;
-  if(done){
-    ui.startButton.textContent = "Installed";
-  }
-  else if(phase === "jtag"){
-    ui.startButton.textContent = "Connect USB JTAG";
-  }
-  else{
-    ui.startButton.textContent = "Connect and Flash";
-  }
+  ui.startButton.textContent = done ? "Installed" : "Connect and Flash";
 }
 
 function setBusy(value){
@@ -162,7 +153,8 @@ function formatReleaseNotes(body){
 async function prepareRelease(){
   try{
     setStatus("busy");
-    log("TWO-STAGE WEBSERIAL TEST: DFU/WebUSB helper path is disabled.");
+    log("TEST 5: USB-persist helper state + direct USB-JTAG Web Serial flash.");
+    log("This page does not upload the helper; run the included USB-persist helper first, then connect to 303A:1001.");
     log("Loading firmware manifest…");
 
     const url = new URL("firmware/manifest.json", window.location.href);
@@ -200,7 +192,8 @@ async function prepareRelease(){
     setStatus("good");
     updateButton();
     log("Firmware is ready.");
-    log("Double-click RST for the GREEN strobe, then click Connect and Flash.");
+    log("HELPER PREREQUISITE: ESP32-S3 USB JTAG/Serial 303A:1001 must already be present and persistent.");
+    log("Connect and Flash will show only ESP32-S3 USB JTAG/Serial 303A:1001.");
   }
   catch(error){
     showError(error?.message || String(error));
@@ -215,80 +208,9 @@ function resetProgress(){
   lastProgressLog = [-10, -10];
 }
 
-async function transitionToUsbJtag(){
-  clearError();
-  ui.successBox.classList.add("hidden");
-  setBusy(true);
+async function directSerialFlash(){
+  if(busy || !images || done) return;
 
-  let transport = null;
-  try{
-    log("Stage 1: opening Web Serial chooser for Arduino Nano ESP32 recovery 2341:0070…");
-    const port = await navigator.serial.requestPort({
-      filters: [{ usbVendorId: 0x2341, usbProductId: 0x0070 }]
-    });
-    const info = port.getInfo();
-    log(`Selected serial device USB ${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}.`);
-
-    if(info.usbVendorId !== 0x2341 || info.usbProductId !== 0x0070){
-      throw new Error("Stage 1 requires the Arduino Nano ESP32 recovery device 2341:0070.");
-    }
-
-    transport = new Transport(port, true);
-    const terminal = {
-      clean(){},
-      writeLine(data){
-        const text = String(data || "").trimEnd();
-        if(text) log(text);
-      },
-      write(data){
-        const text = String(data || "").trimEnd();
-        if(text) log(text);
-      }
-    };
-
-    const loader = new ESPLoader({
-      transport,
-      baudrate: cfg.device.flashBaud,
-      terminal,
-      debugLogging: false
-    });
-
-    log("Triggering the same default ESPLoader connection/reset attempt used by Espressif…");
-    try{
-      await loader.main();
-      log("Stage 1 ESPLoader connection unexpectedly completed; USB identity may still change.");
-    }
-    catch(error){
-      log(`Stage 1 connection ended with: ${error?.message || error}`);
-      log("For this test that error is acceptable if the Nano re-enumerates as 303A:1001 USB JTAG.");
-    }
-
-    // Do not call transport.disconnect() here. On Windows the 2341:0070 port may
-    // already be disappearing/re-enumerating and cleanup can block behind it.
-    transport = null;
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    phase = "jtag";
-    setBusy(false);
-    setStatus("good");
-    updateButton();
-    log("Stage 1 complete. Click Connect USB JTAG and select Espressif USB JTAG/serial debug unit (303A:1001).");
-  }
-  catch(error){
-    if(transport){
-      try{ await transport.disconnect(); } catch(_error){}
-    }
-    setBusy(false);
-    if(error?.name === "NotFoundError"){
-      setStatus("good");
-      log("Serial chooser canceled. No changes were made.");
-      return;
-    }
-    showError(`USB JTAG transition stage failed: ${error?.message || error}`);
-  }
-}
-
-async function flashUsbJtag(){
   clearError();
   ui.successBox.classList.add("hidden");
   resetProgress();
@@ -298,17 +220,19 @@ async function flashUsbJtag(){
   let loaderConnected = false;
 
   try{
-    log("Stage 2: opening Web Serial chooser for ESP32-S3 USB JTAG 303A:1001…");
+    log("Opening Web Serial chooser filtered to ESP32-S3 USB JTAG/Serial 303A:1001…");
+
+    // This revision intentionally refuses the Arduino 2341:0070 recovery/DFU
+    // composite device. The goal is to test the normally running ESP32-S3
+    // Hardware CDC / USB-JTAG-Serial path used by esptool-js.
     const port = await navigator.serial.requestPort({
       filters: [{ usbVendorId: 0x303A, usbProductId: 0x1001 }]
     });
     const info = port.getInfo();
     log(`Selected serial device USB ${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}.`);
 
-    if(info.usbVendorId !== 0x303A || info.usbProductId !== 0x1001){
-      throw new Error("Stage 2 requires ESP32-S3 USB JTAG/Serial 303A:1001.");
-    }
-
+    // Keep this test close to Espressif's documented example: direct Web Serial
+    // -> Transport -> ESPLoader.main(). No WebUSB, DFU interface, or helper.
     transport = new Transport(port, true);
     const terminal = {
       clean(){},
@@ -329,7 +253,12 @@ async function flashUsbJtag(){
       debugLogging: false
     });
 
-    log("Connecting to USB JTAG with ESPLoader.main()…");
+    if(info.usbVendorId !== 0x303A || info.usbProductId !== 0x1001){
+      throw new Error(`Wrong serial device selected (${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}). This test requires 303A:1001.`);
+    }
+
+    log("Confirmed ESP32-S3 USB JTAG/Serial 303A:1001.");
+    log("Connecting with ESPLoader.main(); esptool-js should automatically use its USB-JTAG-Serial reset strategy…");
     const chipName = await loader.main();
     loaderConnected = true;
     log(`Detected chip: ${chipName}`);
@@ -394,18 +323,8 @@ async function flashUsbJtag(){
       return;
     }
 
-    const where = loaderConnected ? "during flashing" : "while connecting to USB JTAG";
-    showError(`Stage 2 failed ${where}: ${error?.message || error}`);
-  }
-}
-
-async function directSerialFlash(){
-  if(busy || !images || done) return;
-  if(phase === "jtag"){
-    await flashUsbJtag();
-  }
-  else{
-    await transitionToUsbJtag();
+    const phase = loaderConnected ? "during flashing" : "while connecting to the ESP32-S3";
+    showError(`Direct Web Serial test failed ${phase}: ${error?.message || error}`);
   }
 }
 
