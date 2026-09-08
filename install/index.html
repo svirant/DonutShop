@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ffffff">
   <title>DonutShop Firmware Installer</title>
   <meta name="description" content="Install DonutShop firmware on an Arduino or Waveshare Nano ESP32.">
-  <link rel="stylesheet" href="./style.css?v=dfu-cdc-noreset-test-v3">
+  <link rel="stylesheet" href="./style.css?v=two-stage-webserial-test-v4">
 </head>
 <body>
   <main class="page-shell">
@@ -28,9 +28,10 @@
       </span>
       <div class="section-divider" aria-hidden="true"></div>
       <ol class="install-steps">
-        <li>Connect the Nano ESP32 directly and <strong>double-click RST</strong> so the GREEN recovery LED is strobing.</li>
-        <li>Click <strong>“Connect and Flash”</strong>. This test only allows the Arduino recovery CDC device <strong>2341:0070</strong> and deliberately skips DTR/RTS reset signals.</li>
-        <li>When flashing finishes, press <strong>RST once</strong> to boot the newly flashed firmware, then continue with the <strong>“Setup”</strong> steps.</li>
+        <li>Double-click <strong>RST</strong> so the Nano enters the GREEN-strobing Arduino recovery state.</li>
+        <li>Click <strong>“Connect and Flash”</strong> and select the Arduino Nano ESP32 recovery serial device. This first connection is used only to make the Nano re-enumerate as USB JTAG.</li>
+        <li>When the button changes to <strong>“Connect USB JTAG”</strong>, click it and select <strong>Espressif USB JTAG/serial debug unit</strong>. Flashing will then begin automatically.</li>
+        <li>After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.</li>
       </ol>
       <button id="startButton" class="flash-button" disabled>Connect and Flash</button>
     </section>
@@ -59,7 +60,7 @@
     </div>
   </main>
 
-  <script src="./config.js?v=dfu-cdc-noreset-test-v3"></script>
-  <script type="module" src="./installer.js?v=dfu-cdc-noreset-test-v3"></script>
+  <script src="./config.js?v=two-stage-webserial-test-v4"></script>
+  <script type="module" src="./installer.js?v=two-stage-webserial-test-v4"></script>
 </body>
 </html>
