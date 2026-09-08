@@ -191,8 +191,7 @@ async function prepareRelease(){
     setStatus("good");
     updateButton();
     log("Firmware is ready.");
-    log("NORMAL BOOT TEST: the Nano must NOT be in the green-strobing Arduino DFU recovery mode.");
-    log("Connect and Flash will show only ESP32-S3 USB JTAG/Serial 303A:1001.");
+    log("Click Connect and Flash, then choose the same Nano serial device that works on Espressif's esptool-js site.");
   }
   catch(error){
     showError(error?.message || String(error));
@@ -219,13 +218,12 @@ async function directSerialFlash(){
   let loaderConnected = false;
 
   try{
-    log("Opening Web Serial chooser filtered to ESP32-S3 USB JTAG/Serial 303A:1001…");
+    log("Opening Web Serial chooser for Arduino Nano ESP32 recovery CDC 2341:0070…");
 
-    // This revision intentionally refuses the Arduino 2341:0070 recovery/DFU
-    // composite device. The goal is to test the normally running ESP32-S3
-    // Hardware CDC / USB-JTAG-Serial path used by esptool-js.
+    // This diagnostic revision targets the Arduino Nano ESP32 recovery composite device.
+    // The board is already in recovery/bootloader mode, so we will not toggle DTR/RTS.
     const port = await navigator.serial.requestPort({
-      filters: [{ usbVendorId: 0x303A, usbProductId: 0x1001 }]
+      filters: [{ usbVendorId: 0x2341, usbProductId: 0x0070 }]
     });
     const info = port.getInfo();
     log(`Selected serial device USB ${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}.`);
@@ -252,13 +250,8 @@ async function directSerialFlash(){
       debugLogging: false
     });
 
-    if(info.usbVendorId !== 0x303A || info.usbProductId !== 0x1001){
-      throw new Error(`Wrong serial device selected (${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}). This test requires 303A:1001.`);
-    }
-
-    log("Confirmed ESP32-S3 USB JTAG/Serial 303A:1001.");
-    log("Connecting with ESPLoader.main(); esptool-js should automatically use its USB-JTAG-Serial reset strategy…");
-    const chipName = await loader.main();
+    log("Connecting with ESPLoader.main(\"no_reset\") — no DTR/RTS control signals…");
+    const chipName = await loader.main("no_reset");
     loaderConnected = true;
     log(`Detected chip: ${chipName}`);
 
@@ -300,8 +293,10 @@ async function directSerialFlash(){
       }
     });
 
-    log("Flash complete. Resetting Nano…");
-    await loader.after("hard_reset");
+    log("Flash complete. Skipping automatic reset to avoid DTR/RTS setSignals().");
+    try{ await transport.disconnect(); } catch(_error){}
+    transport = null;
+    log("Press RST once on the Nano to boot the newly flashed firmware.");
 
     done = true;
     setBusy(false);

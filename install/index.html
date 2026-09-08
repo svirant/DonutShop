@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ffffff">
   <title>DonutShop Firmware Installer</title>
   <meta name="description" content="Install DonutShop firmware on an Arduino or Waveshare Nano ESP32.">
-  <link rel="stylesheet" href="./style.css?v=direct-usbjtag-test-v2">
+  <link rel="stylesheet" href="./style.css?v=dfu-cdc-noreset-test-v3">
 </head>
 <body>
   <main class="page-shell">
@@ -28,9 +28,9 @@
       </span>
       <div class="section-divider" aria-hidden="true"></div>
       <ol class="install-steps">
-        <li>Connect the Nano ESP32 directly to your PC or Mac and let <strong>DonutShop boot normally</strong>. <strong>Do not double-click RST.</strong> If the GREEN recovery LED is strobing, press RST once to leave recovery and return to the normal firmware.</li>
-        <li>Click <strong>“Connect and Flash”</strong>. This test only allows <strong>ESP32-S3 USB JTAG/Serial 303A:1001</strong>; the Arduino DFU/CDC device 2341:0070 will not be offered.</li>
-        <li>After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.</li>
+        <li>Connect the Nano ESP32 directly and <strong>double-click RST</strong> so the GREEN recovery LED is strobing.</li>
+        <li>Click <strong>“Connect and Flash”</strong>. This test only allows the Arduino recovery CDC device <strong>2341:0070</strong> and deliberately skips DTR/RTS reset signals.</li>
+        <li>When flashing finishes, press <strong>RST once</strong> to boot the newly flashed firmware, then continue with the <strong>“Setup”</strong> steps.</li>
       </ol>
       <button id="startButton" class="flash-button" disabled>Connect and Flash</button>
     </section>
@@ -59,7 +59,7 @@
     </div>
   </main>
 
-  <script src="./config.js?v=direct-usbjtag-test-v2"></script>
-  <script type="module" src="./installer.js?v=direct-usbjtag-test-v2"></script>
+  <script src="./config.js?v=dfu-cdc-noreset-test-v3"></script>
+  <script type="module" src="./installer.js?v=dfu-cdc-noreset-test-v3"></script>
 </body>
 </html>
