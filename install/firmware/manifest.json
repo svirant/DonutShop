@@ -1,14 +1,14 @@
 {
-  "tag": "v0.7.15",
-  "name": "DonutShop v0.7.15",
-  "published_at": "2026-09-02T23:33:12Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.15",
-  "body": "**OSD Mirror**\r\n- New \"compact\" checkbox (enabled by default) sizes the desktop version of OSD Mirror nicely in your browser.\r\n  - unchecking restores the original unscaled version\r\n  - does not apply to mobile version\r\n\r\n**Misc**\r\n- New websocket checks prevent multiple WebCtl clients from interfering with a transfer",
+  "tag": "v0.7.16",
+  "name": "DonutShop v0.7.16",
+  "published_at": "2026-09-12T05:25:13Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.16",
+  "body": " - WebCtl page changes title based on detected RetroTink\r\n - Firmware Updates can now be done with a single click\r\n - File transfers are now ~30% faster with CRC-16 only validation when using firmware 1.80\r\n - New Diagnostics tab shows the output of all diagnostic commands introduced in firmware 1.80 w/ option to copy results\r\n   - hidden by default, enable in Expert -> Options\r\n   - Struct tab now hidden by default ^^^\r\n   - Enable firmware test mode ^^^",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.7.15_full.bin",
-    "size": 1936048,
-    "sha256": "fb6e1f854d0e66026d4a4ccaabb7c101be53ab56c8f65043eac9e361a15483ef"
+    "name": "DonutShop_v0.7.16_full.bin",
+    "size": 2037904,
+    "sha256": "aca033d7bc608110247c6680c97bdef28c716117a76de1b27b72be8565df0f85"
   },
   "recovery": {
     "name": "nora_recovery.bin",
