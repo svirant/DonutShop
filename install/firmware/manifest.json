@@ -7,8 +7,8 @@
   "prerelease": false,
   "full": {
     "name": "DonutShop_v0.7.16_full.bin",
-    "size": 2037904,
-    "sha256": "aca033d7bc608110247c6680c97bdef28c716117a76de1b27b72be8565df0f85"
+    "size": 1986832,
+    "sha256": "829e7a8f16b028ff2cda6cd0e73285b8e8108247545d928772377aa9991168ff"
   },
   "recovery": {
     "name": "nora_recovery.bin",
