@@ -67,6 +67,8 @@ Glazed Theme
   - **Nano ESP32:** pick one based on availability
      - [WaveShare Nano ESP32](https://amzn.to/45FE30D) or from [Aliexpress](https://s.click.aliexpress.com/e/_c3cHQg5V)
      - [Arduino Nano ESP32](https://amzn.to/4xXGsQm)
+  - **3D Printed case**
+     - ```Nano_ESP32.3mf``` file listed above
   - **USB-A to C cable**
      - [Short USB A to USB C Cable](https://amzn.to/4qvE7cV)
 
