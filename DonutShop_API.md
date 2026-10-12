@@ -4,7 +4,7 @@
 **Base URL:** `http://donutshop.local`  
 **Transport:** HTTP, port 80
 
-The DonutShop REST API provides access to RetroTink status, device information, serial commands, SD card directory listings, file downloads, and file uploads.
+The DonutShop REST API provides access to RetroTink status, device information, serial commands, SD card directory listings, file downloads and uploads, file and folder deletion, folder creation, and file or folder move/rename operations.
 
 All public API access uses **port 80**.
 
