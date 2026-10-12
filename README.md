@@ -9,10 +9,27 @@ is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RetroTink 4
 See it in action: https://youtu.be/ldbfFbKzjh8 <br>
 
   - Note: In version v0.7.x you can still access this gameID only version at http://donutshop.local/gameid
-    
+
+## DonutShop API
+[Current Guide](https://github.com/svirant/DonutShop/blob/main/DonutShop_API.md)
+
+Base URL: http://donutshop.local
+- `GET /api/info` | Device and firmware information
+- `GET /api/status` | Current RetroTink and DonutShop status
+- `POST /api/command` | Send a RetroTink serial command
+  - Body: `{"command": "status"}`
+- `GET /api/files/` | List the SD card root
+- `GET /api/files/<path>` | List a directory or download a file
+-  `PUT /api/files/<path>` | Create or overwrite a file
+- `DELETE /api/files/<path>` | Delete a file or empty folder
+- `POST /api/files/mkdir` | Create a folder
+  - Body: `{"path": "profile/SVS/New Folder"}`
+- `POST /api/files/move` | Move or rename a file or folder
+  - Body: `{"source": "profile/SVS/Old.rt4", "destination": "profile/SVS/New.rt4"}` 
+- Additional info/status fields imminent
 
 ## DonutShop ft. RT4K WebCtl (work in progress v0.7.x)
- - Requires RT4K v1.75+ fw
+ - Requires RT4K v1.75+ experimental firmware, not the latest 1.9.6 stable firmware.
  - This version integrates the gameID functionality into the RT4K WebCtl internal test app. It's still very much a work in progress, but I wanted to share the experience thus far.
  - In a nutshell, with WebCtl on DonutShop, you gain:
     - Dashboard of RT4K status, ability to change Input/Output
