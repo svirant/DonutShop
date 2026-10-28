@@ -81,11 +81,13 @@ Glazed Theme
      - [Jadebones USB C to USB OTG](https://amzn.to/4cRdskT)
      - [USB C OTG Adapter, 2 in 1 USB-C to USB](https://a.co/d/07DvAKlc)
      - IT: [IVIVTOR USB-C OTG Cable Adapter](https://www.amazon.it/dp/B0F8N12YQD) (tested on 8/24/26)
-  - **Nano ESP32:** pick one based on availability
+  - **Nano or XIAO ESP32:** pick one based on availability
      - [WaveShare Nano ESP32](https://amzn.to/45FE30D) or from [Aliexpress](https://s.click.aliexpress.com/e/_c3cHQg5V)
      - [Arduino Nano ESP32](https://amzn.to/4xXGsQm)
-  - **3D Printed case**
-     - ```Nano_ESP32.3mf``` file listed above
+     - [XIAO ESP32-S3](https://www.seeedstudio.com/XIAO-ESP32S3-p-5627.html) or from [Amazon](https://a.co/d/01UDDdjT)
+  - **3D Printed cases**
+     - ```Nano_ESP32.3mf``` files listed above
+     - ```XIAO_ESP32.3mf``` 3 types to choose from
   - **USB-A to C cable**
      - [Short USB A to USB C Cable](https://amzn.to/4qvE7cV)
 
