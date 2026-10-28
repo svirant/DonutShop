@@ -36,7 +36,7 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install arduino:esp32
 
-      - name: Mirror Release and build DFU helper
+      - name: Mirror Nano and XIAO Release images and build DFU helper
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -52,9 +52,15 @@ jobs:
           fi
 
           echo "Syncing Release: $TAG"
+          VERSION="${TAG#v}"
 
           FIRMWARE_DIR="install/firmware"
           mkdir -p "$FIRMWARE_DIR"
+
+          NANO_FULL_NAME="DonutShop_v${VERSION}_full.bin"
+          XIAO_FULL_NAME="DonutShop_v${VERSION}_XIAO_full.bin"
+          RECOVERY_NAME="nora_recovery.bin"
+          HELPER_NAME="dfu_to_usb_jtag.bin"
 
           rm -f "$FIRMWARE_DIR"/*_full.bin \
                 "$FIRMWARE_DIR"/nora_recovery.bin \
@@ -63,27 +69,18 @@ jobs:
 
           gh release download "$TAG" \
             --repo "$REPO" \
-            --pattern '*_full.bin' \
-            --pattern 'nora_recovery.bin' \
+            --pattern "$NANO_FULL_NAME" \
+            --pattern "$XIAO_FULL_NAME" \
+            --pattern "$RECOVERY_NAME" \
             --dir "$FIRMWARE_DIR" \
             --clobber
 
-          mapfile -t FULL_FILES < <(find "$FIRMWARE_DIR" -maxdepth 1 -type f -name '*_full.bin' -printf '%f\n' | sort)
-
-          if [[ ${#FULL_FILES[@]} -ne 1 ]]; then
-            echo "Expected exactly one *_full.bin asset, found ${#FULL_FILES[@]}."
-            printf '%s\n' "${FULL_FILES[@]}"
-            exit 1
-          fi
-
-          FULL_NAME="${FULL_FILES[0]}"
-          RECOVERY_NAME="nora_recovery.bin"
-          HELPER_NAME="dfu_to_usb_jtag.bin"
-
-          if [[ ! -f "$FIRMWARE_DIR/$RECOVERY_NAME" ]]; then
-            echo "Missing $RECOVERY_NAME in Release $TAG."
-            exit 1
-          fi
+          for required in "$NANO_FULL_NAME" "$XIAO_FULL_NAME" "$RECOVERY_NAME"; do
+            if [[ ! -f "$FIRMWARE_DIR/$required" ]]; then
+              echo "Missing $required in Release $TAG."
+              exit 1
+            fi
+          done
 
           mkdir -p "$RUNNER_TEMP/helper-build"
 
@@ -102,11 +99,13 @@ jobs:
 
           cp "$HELPER_BUILD" "$FIRMWARE_DIR/$HELPER_NAME"
 
-          FULL_SIZE="$(stat -c%s "$FIRMWARE_DIR/$FULL_NAME")"
+          NANO_FULL_SIZE="$(stat -c%s "$FIRMWARE_DIR/$NANO_FULL_NAME")"
+          XIAO_FULL_SIZE="$(stat -c%s "$FIRMWARE_DIR/$XIAO_FULL_NAME")"
           RECOVERY_SIZE="$(stat -c%s "$FIRMWARE_DIR/$RECOVERY_NAME")"
           HELPER_SIZE="$(stat -c%s "$FIRMWARE_DIR/$HELPER_NAME")"
 
-          FULL_SHA="$(sha256sum "$FIRMWARE_DIR/$FULL_NAME" | awk '{print $1}')"
+          NANO_FULL_SHA="$(sha256sum "$FIRMWARE_DIR/$NANO_FULL_NAME" | awk '{print $1}')"
+          XIAO_FULL_SHA="$(sha256sum "$FIRMWARE_DIR/$XIAO_FULL_NAME" | awk '{print $1}')"
           RECOVERY_SHA="$(sha256sum "$FIRMWARE_DIR/$RECOVERY_NAME" | awk '{print $1}')"
           HELPER_SHA="$(sha256sum "$FIRMWARE_DIR/$HELPER_NAME" | awk '{print $1}')"
 
@@ -124,9 +123,12 @@ jobs:
             --arg published_at "$PUBLISHED_AT" \
             --arg html_url "$HTML_URL" \
             --arg body "$BODY" \
-            --arg full_name "$FULL_NAME" \
-            --argjson full_size "$FULL_SIZE" \
-            --arg full_sha "$FULL_SHA" \
+            --arg full_name "$NANO_FULL_NAME" \
+            --argjson full_size "$NANO_FULL_SIZE" \
+            --arg full_sha "$NANO_FULL_SHA" \
+            --arg xiao_full_name "$XIAO_FULL_NAME" \
+            --argjson xiao_full_size "$XIAO_FULL_SIZE" \
+            --arg xiao_full_sha "$XIAO_FULL_SHA" \
             --arg recovery_name "$RECOVERY_NAME" \
             --argjson recovery_size "$RECOVERY_SIZE" \
             --arg recovery_sha "$RECOVERY_SHA" \
@@ -146,6 +148,11 @@ jobs:
                 size: $full_size,
                 sha256: $full_sha
               },
+              xiao_full: {
+                name: $xiao_full_name,
+                size: $xiao_full_size,
+                sha256: $xiao_full_sha
+              },
               recovery: {
                 name: $recovery_name,
                 size: $recovery_size,
@@ -158,7 +165,8 @@ jobs:
               }
             }' > "$FIRMWARE_DIR/manifest.json"
 
-          echo "Mirrored $FULL_NAME ($FULL_SIZE bytes)"
+          echo "Mirrored $NANO_FULL_NAME ($NANO_FULL_SIZE bytes)"
+          echo "Mirrored $XIAO_FULL_NAME ($XIAO_FULL_SIZE bytes)"
           echo "Mirrored $RECOVERY_NAME ($RECOVERY_SIZE bytes)"
           echo "Built $HELPER_NAME ($HELPER_SIZE bytes)"
 

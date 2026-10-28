@@ -2,7 +2,8 @@ window.DONUTSHOP_INSTALLER_CONFIG = {
   firmware: {
     fullAddress: 0x000000,
     recoveryAddress: 0xF70000,
-    flashSizeBytes: 16 * 1024 * 1024
+    flashSizeBytes: 16 * 1024 * 1024,
+    xiaoFlashSizeBytes: 8 * 1024 * 1024
   },
 
   device: {
@@ -15,7 +16,7 @@ window.DONUTSHOP_INSTALLER_CONFIG = {
     expectedChip: "ESP32-S3",
     flashBaud: 921600,
 
-    // If the USB JTAG device was previously authorized, the installer can
+    // If the USB JTAG device was previously authorized, the Nano installer can
     // detect it automatically after the user presses RST once.
     jtagWatchMs: 60000
   }

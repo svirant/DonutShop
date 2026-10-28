@@ -5,7 +5,9 @@ const cfg = window.DONUTSHOP_INSTALLER_CONFIG;
 const $ = (id) => document.getElementById(id);
 const ui = {
   browserWarning: $("browserWarning"),
-  windowsDriverNotice: $("windowsDriverNotice"),
+  boardPicker: $("boardPicker"),
+  instructionsWrap: $("instructionsWrap"),
+  installSteps: $("installSteps"),
   releaseBadge: $("releaseBadge"),
   releaseVersion: $("releaseVersion"),
   releaseDate: $("releaseDate"),
@@ -25,7 +27,8 @@ const ui = {
   recoveryPercent: $("recoveryPercent"),
   successBox: $("successBox"),
   errorBox: $("errorBox"),
-  consoleOutput: $("consoleOutput")
+  consoleOutput: $("consoleOutput"),
+  boardButtons: [...document.querySelectorAll("[data-board]")]
 };
 
 const DFU_CLASS = 0xFE;
@@ -46,12 +49,19 @@ const STATE_DFU_MANIFEST_WAIT_RESET = 8;
 const STATE_DFU_ERROR = 10;
 
 let images = null;
+let releaseManifest = null;
+let selectedBoard = null;
+let firmwareLoadGeneration = 0;
 let busy = false;
 let stage = "connect";
 let watchTimer = null;
 let showJtagFallback = false;
 let watchDeadline = 0;
 let lastProgressLog = [-10, -10];
+
+const platform = String(navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || "").toLowerCase();
+const isWindows = platform.includes("win");
+const XIAO_FLASH_SIZE_BYTES = cfg?.firmware?.xiaoFlashSizeBytes || (8 * 1024 * 1024);
 
 function log(message){
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -127,8 +137,50 @@ function showError(message){
   log(`ERROR: ${message}`);
 }
 
+function setBoardButtonsDisabled(disabled){
+  for(const button of ui.boardButtons){
+    button.disabled = !!disabled;
+  }
+}
+
+function renderInstructions(board){
+  const xiaoBoot = 'Hold down the <strong>Boot</strong> button while connecting your XIAO ESP32 via USB directly to your PC or Mac (not through a USB hub). The Boot button is on the right side of the USB-C port when it\'s facing up.';
+  const xiaoSetup = 'After installation, disconnect the USB cable, verify the WiFi antenna is connected, and continue with the <strong>“Setup”</strong> steps listed on GitHub.';
+  const nanoSetup = 'After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.';
+  let steps = [];
+
+  if(board === "xiao"){
+    if(isWindows){
+      steps.push('<strong>Windows 10/11 first-time setup:</strong> Install Seeed Studio\'s official XIAO ESP32 USB driver before continuing. <a href="./XIAO-ESP32_drivers.zip">XIAO ESP32 USB driver package</a>. Extract the ZIP, right-click on <code>seeed_usb_serial.inf</code> and select <strong>“Install”</strong>. This is only required once.');
+    }
+    steps.push(xiaoBoot);
+    steps.push('Click <strong>“Connect and Flash”</strong> and select <strong>“USB JTAG”</strong>.');
+    steps.push(xiaoSetup);
+  }
+  else{
+    if(isWindows){
+      steps.push('<strong>Windows 10/11 first-time setup:</strong> Install Arduino’s official Nano ESP32 USB driver before continuing. <a href="./Arduino-Nano-ESP32_drivers.zip">Arduino ESP32 drivers-only package (6MB)</a>. Extract the ZIP, open the <code>drivers</code> folder, then run <code>dpinst-amd64.exe</code> on 64-bit Windows 10 or any Windows 11 PC. Use <code>dpinst-x86.exe</code> only for 32-bit Windows 10. This is only required once.');
+    }
+    steps.push('Connect your Nano ESP32 via USB directly to your PC or Mac (not through a USB hub) and double click the Nano\'s RST button to enter <strong>recovery mode</strong> (a <strong>GREEN</strong> LED will strobe when successful).');
+    steps.push('Click <strong>“Connect and Flash”</strong> and select <strong>“ARDUINO_NANO_NORA”</strong> (or <strong>“Nano ESP32 (bootloader)”</strong>). When <strong>“Authorize USB JTAG”</strong> appears, follow the instruction shown below the button.');
+    steps.push(nanoSetup);
+  }
+
+  ui.installSteps.innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
+  ui.instructionsWrap.classList.remove("hidden");
+}
+
+function updateBoardSelection(){
+  for(const button of ui.boardButtons){
+    const selected = button.dataset.board === selectedBoard;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  }
+}
+
 function setBusy(value){
   busy = value;
+  setBoardButtonsDisabled(value || !releaseManifest);
   if(value){
     ui.startButton.disabled = true;
     ui.jtagButton.disabled = true;
@@ -147,10 +199,10 @@ function updateButtonForStage(){
   ui.jtagButton.disabled = busy || !showJtag;
   ui.jtagInstructions.classList.toggle("hidden", !showJtag);
 
-  const showStart = stage === "connect" || stage === "done";
+  const showStart = !!selectedBoard && (stage === "connect" || stage === "done");
   ui.startButton.classList.toggle("hidden", !showStart);
 
-  if(!images){
+  if(!selectedBoard || !images){
     ui.startButton.disabled = true;
     ui.startButton.textContent = "Connect and Flash";
     return;
@@ -203,20 +255,24 @@ async function fetchAsset(asset){
   return data;
 }
 
-function validateLayout(fullAsset, recoveryAsset, helperAsset){
+function validateNanoLayout(fullAsset, recoveryAsset, helperAsset){
   const fullEnd = cfg.firmware.fullAddress + fullAsset.size;
   const recoveryEnd = cfg.firmware.recoveryAddress + recoveryAsset.size;
 
   if(fullEnd > cfg.firmware.recoveryAddress){
     throw new Error(`Main image would overlap the recovery region.`);
   }
-
   if(recoveryEnd > cfg.firmware.flashSizeBytes){
     throw new Error(`Recovery image would extend beyond 16 MB flash.`);
   }
-
   if(helperAsset.size < 1024 || helperAsset.size > (3 * 1024 * 1024)){
     throw new Error(`DFU helper size is not plausible.`);
+  }
+}
+
+function validateXiaoLayout(fullAsset){
+  if(!fullAsset?.size || fullAsset.size > XIAO_FLASH_SIZE_BYTES){
+    throw new Error(`XIAO full image is not plausible for 8 MB flash.`);
   }
 }
 
@@ -241,33 +297,32 @@ function formatReleaseNotes(body){
 async function prepareRelease(){
   try{
     setStatus("busy");
+    setBoardButtonsDisabled(true);
     log("Loading firmware manifest…");
 
     const url = new URL("firmware/manifest.json", window.location.href);
     url.searchParams.set("_", Date.now().toString());
-
     const response = await fetch(url, { cache: "no-store" });
 
     if(response.status === 404){
       throw new Error("Firmware mirror is not initialized. Run the Sync Installer Firmware workflow once.");
     }
-
     if(!response.ok){
       throw new Error(`Firmware manifest lookup failed: HTTP ${response.status}`);
     }
 
     const manifest = await response.json();
-
-    if(!manifest.tag || !manifest.full || !manifest.recovery || !manifest.helper){
-      throw new Error("firmware/manifest.json is missing full, recovery, or helper data. Run the updated Sync Installer Firmware workflow.");
+    if(!manifest.tag || !manifest.full || !manifest.xiao_full || !manifest.recovery || !manifest.helper){
+      throw new Error("firmware/manifest.json is missing Nano, XIAO, recovery, or helper data. Run the updated Sync Installer Firmware workflow.");
     }
 
-    validateLayout(manifest.full, manifest.recovery, manifest.helper);
+    validateNanoLayout(manifest.full, manifest.recovery, manifest.helper);
+    validateXiaoLayout(manifest.xiao_full);
+    releaseManifest = manifest;
 
     ui.releaseVersion.textContent = manifest.tag || manifest.name || "—";
     ui.releaseDate.textContent = formatDate(manifest.published_at);
     ui.releaseBadge.textContent = manifest.prerelease ? "Pre-release" : "Latest stable";
-
     ui.releaseNotesTooltip.textContent = formatReleaseNotes(manifest.body);
 
     if(manifest.html_url){
@@ -275,25 +330,95 @@ async function prepareRelease(){
       ui.releaseNotesWrap.classList.remove("hidden");
     }
 
-    ui.fullName.textContent = manifest.full.name;
-    ui.recoveryName.textContent = manifest.recovery.name;
-    ui.helperName.textContent = manifest.helper.name;
+    setBoardButtonsDisabled(false);
+    setStatus("");
+    log("Firmware manifest is ready. Select a board.");
 
-    const [fullData, recoveryData, helperData] = await Promise.all([
-      fetchAsset(manifest.full),
-      fetchAsset(manifest.recovery),
-      fetchAsset(manifest.helper)
-    ]);
-
-    images = { fullData, recoveryData, helperData };
-    stage = "connect";
-    setStatus("good");
-    updateButtonForStage();
-    log("Firmware is ready.");
+    if(selectedBoard){
+      await loadFirmwareForBoard(selectedBoard);
+    }
   }
   catch(error){
+    setBoardButtonsDisabled(true);
     showError(error?.message || String(error));
   }
+}
+
+async function loadFirmwareForBoard(board){
+  if(!releaseManifest) return;
+
+  const generation = ++firmwareLoadGeneration;
+  images = null;
+  stage = "connect";
+  showJtagFallback = false;
+  stopBootloaderWatcher();
+  updateButtonForStage();
+  clearError();
+  ui.successBox.classList.add("hidden");
+  setStatus("busy");
+  setBoardButtonsDisabled(true);
+
+  try{
+    if(board === "xiao"){
+      validateXiaoLayout(releaseManifest.xiao_full);
+      ui.fullName.textContent = releaseManifest.xiao_full.name;
+      ui.recoveryName.textContent = "—";
+      ui.helperName.textContent = "—";
+      const xiaoFullData = await fetchAsset(releaseManifest.xiao_full);
+      if(generation !== firmwareLoadGeneration || selectedBoard !== board) return;
+      images = { xiaoFullData };
+      log("XIAO firmware is ready.");
+    }
+    else{
+      validateNanoLayout(releaseManifest.full, releaseManifest.recovery, releaseManifest.helper);
+      ui.fullName.textContent = releaseManifest.full.name;
+      ui.recoveryName.textContent = releaseManifest.recovery.name;
+      ui.helperName.textContent = releaseManifest.helper.name;
+      const [fullData, recoveryData, helperData] = await Promise.all([
+        fetchAsset(releaseManifest.full),
+        fetchAsset(releaseManifest.recovery),
+        fetchAsset(releaseManifest.helper)
+      ]);
+      if(generation !== firmwareLoadGeneration || selectedBoard !== board) return;
+      images = { fullData, recoveryData, helperData };
+      log(`${board === "waveshare" ? "Waveshare" : "Arduino"} Nano firmware is ready.`);
+    }
+
+    stage = "connect";
+    setStatus("good");
+    setBoardButtonsDisabled(false);
+    updateButtonForStage();
+  }
+  catch(error){
+    if(generation !== firmwareLoadGeneration) return;
+    images = null;
+    setBoardButtonsDisabled(false);
+    updateButtonForStage();
+    showError(error?.message || String(error));
+  }
+}
+
+async function selectBoard(board){
+  if(busy || !["xiao", "waveshare", "arduino"].includes(board)) return;
+
+  selectedBoard = board;
+  ++firmwareLoadGeneration;
+  stopBootloaderWatcher();
+  showJtagFallback = false;
+  stage = "connect";
+  images = null;
+  clearError();
+  ui.successBox.classList.add("hidden");
+  updateBoardSelection();
+  renderInstructions(board);
+  updateButtonForStage();
+
+  if(board !== "xiao" && !("usb" in navigator)){
+    showError("WebUSB is required for Arduino/Waveshare installation. Use Chrome or Edge on desktop.");
+    return;
+  }
+
+  await loadFirmwareForBoard(board);
 }
 
 function findDfuInterface(device){
@@ -905,8 +1030,109 @@ async function flashBootloaderDevice(portOverride = null, automatic = false){
   }
 }
 
+async function flashXiaoDevice(){
+  if(busy || !images?.xiaoFullData || selectedBoard !== "xiao") return;
+
+  clearError();
+  ui.successBox.classList.add("hidden");
+  resetProgress();
+  setBusy(true);
+
+  let transport = null;
+  try{
+    log("Select “USB JTAG” in Chrome's serial chooser.");
+    const port = await navigator.serial.requestPort({
+      filters: [{
+        usbVendorId: cfg.device.bootVendorId,
+        usbProductId: cfg.device.bootProductId
+      }]
+    });
+
+    const info = port.getInfo();
+    log(`Selected USB ${hex4(info.usbVendorId)}:${hex4(info.usbProductId)}.`);
+    transport = new Transport(port, false);
+
+    const terminal = {
+      clean(){},
+      writeLine(data){
+        const text = String(data || "").trimEnd();
+        if(text) log(text);
+      },
+      write(data){
+        const text = String(data || "").trimEnd();
+        if(text) log(text);
+      }
+    };
+
+    const loader = new ESPLoader({
+      transport,
+      baudrate: cfg.device.flashBaud,
+      terminal,
+      debugLogging: false
+    });
+
+    log("Connecting to XIAO ESP32-S3 USB JTAG downloader…");
+    const chipName = await loader.main();
+    log(`Detected chip: ${chipName}`);
+    if(!String(chipName).toUpperCase().includes(cfg.device.expectedChip.toUpperCase())){
+      throw new Error(`Wrong chip detected (${chipName}). This installer requires ${cfg.device.expectedChip}.`);
+    }
+
+    // XIAO intentionally does not erase the entire flash first and does not
+    // receive the Nano Nora recovery image. Its merged full image starts at 0x0.
+    log("Writing XIAO DonutShop full image at 0x0…");
+    await loader.writeFlash({
+      fileArray: [
+        { data: images.xiaoFullData, address: cfg.firmware.fullAddress }
+      ],
+      flashMode: "keep",
+      flashFreq: "keep",
+      flashSize: "keep",
+      eraseAll: false,
+      compress: true,
+      reportProgress(_fileIndex, written, total){
+        const percent = total ? Math.min(100, Math.round((written / total) * 100)) : 0;
+        ui.fullProgress.value = percent;
+        ui.fullPercent.textContent = `${percent}%`;
+        const bucket = percent === 100 ? 100 : Math.floor(percent / 10) * 10;
+        if(bucket >= lastProgressLog[0] + 10 || percent === 100){
+          lastProgressLog[0] = bucket;
+          log(`XIAO firmware: ${percent}%`);
+        }
+      }
+    });
+
+    log("Flash complete. Resetting XIAO…");
+    await loader.after("hard_reset");
+    stage = "done";
+    setStatus("good");
+    setBusy(false);
+    updateButtonForStage();
+    ui.successBox.classList.remove("hidden");
+    log("XIAO installation complete.");
+
+    try{ await transport.disconnect(); }catch(_error){}
+  }
+  catch(error){
+    if(transport){
+      try{ await transport.disconnect(); }catch(_error){}
+    }
+    setBusy(false);
+    stage = "connect";
+    updateButtonForStage();
+    const message = error?.name === "NotFoundError"
+      ? "USB JTAG was not selected. Hold the XIAO Boot button while connecting USB, then click “Connect and Flash” again."
+      : `Installation failed: ${error?.message || error}`;
+    showError(message);
+  }
+}
+
 async function handlePrimaryAction(){
-  if(stage === "connect"){
+  if(stage !== "connect") return;
+  if(selectedBoard === "xiao"){
+    await flashXiaoDevice();
+  }
+  else{
     await beginFactoryFlow();
   }
 }
@@ -926,13 +1152,16 @@ async function handleJtagAction(){
 function init(){
   ui.startButton.addEventListener("click", handlePrimaryAction);
   ui.jtagButton.addEventListener("click", handleJtagAction);
-
-  const platform = String(navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || "").toLowerCase();
-  if(platform.includes("win")){
-    ui.windowsDriverNotice.classList.remove("hidden");
+  for(const button of ui.boardButtons){
+    button.addEventListener("click", () => selectBoard(button.dataset.board));
   }
 
-  if(!("usb" in navigator) || !("serial" in navigator)){
+  ui.instructionsWrap.classList.add("hidden");
+  setBoardButtonsDisabled(true);
+  updateBoardSelection();
+  updateButtonForStage();
+
+  if(!("serial" in navigator)){
     ui.browserWarning.classList.remove("hidden");
     setStatus("bad");
     return;

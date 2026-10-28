@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>DonutShop Firmware Installer</title>
-  <meta name="description" content="Install DonutShop firmware on an Arduino or Waveshare Nano ESP32.">
+  <meta name="description" content="Install DonutShop firmware on XIAO ESP32S3, Waveshare Nano ESP32-S3, or Arduino Nano ESP32.">
   <link rel="stylesheet" href="./style.css?v=windows-driver-step-v2">
+  <link rel="stylesheet" href="./board-selector.css?v=xiao-board-select-v1">
 </head>
 <body>
   <main class="page-shell">
-<section id="browserWarning" class="notice hidden" role="alert">
-      WebUSB and Web Serial are required. Use Chrome or Edge on desktop.
+    <section id="browserWarning" class="notice hidden" role="alert">
+      Web Serial is required. Arduino/Waveshare installation also uses WebUSB. Use Chrome or Edge on desktop.
     </section>
 
     <section class="firmware-card" aria-labelledby="firmwareTitle">
@@ -21,7 +22,23 @@
         <span class="version-date-separator">•</span>
         <span id="releaseDate" class="date">—</span>
       </div>
-      <div class="device">Arduino / Waveshare Nano ESP32 compatible.</div>
+
+      <p class="board-picker-label">Select which one you want to install for:</p>
+      <div id="boardPicker" class="board-picker" role="group" aria-label="Select installation board">
+        <button class="board-choice" type="button" data-board="xiao" aria-pressed="false" disabled>
+          <span class="board-image-wrap"><img src="./boards/xiao-esp32s3.jpeg" alt="XIAO ESP32S3"></span>
+          <span class="board-choice-name">XIAO ESP32S3</span>
+        </button>
+        <button class="board-choice" type="button" data-board="waveshare" aria-pressed="false" disabled>
+          <span class="board-image-wrap"><img src="./boards/waveshare-nano-esp32-s3.jpeg" alt="Waveshare Nano ESP32-S3"></span>
+          <span class="board-choice-name">Waveshare Nano ESP32-S3</span>
+        </button>
+        <button class="board-choice" type="button" data-board="arduino" aria-pressed="false" disabled>
+          <span class="board-image-wrap"><img src="./boards/arduino-nano-esp32.jpeg" alt="Arduino Nano ESP32"></span>
+          <span class="board-choice-name">Arduino Nano ESP32</span>
+        </button>
+      </div>
+
       <span id="releaseNotesWrap" class="release-notes-wrap hidden">
         <a id="releaseLink" class="release-link" href="#" target="_blank" rel="noopener noreferrer" aria-describedby="releaseNotesTooltip">Release Notes</a>
         <span id="releaseNotesTooltip" class="release-notes-tooltip" role="tooltip"></span>
@@ -29,21 +46,11 @@
 
       <div class="section-divider" aria-hidden="true"></div>
 
-      <ol class="install-steps">
-        <li id="windowsDriverNotice" class="hidden">
-          <div class="windows-driver-notice" role="note">
-            <strong>Windows 10/11 first-time setup:</strong> Install Arduino’s official Nano ESP32 USB driver before continuing.
-            <a href="https://svirant.github.io/DonutShop/install/Arduino-Nano-ESP32_drivers.zip">Arduino ESP32 drivers-only package (6MB)</a>.
-            Extract the ZIP, open the <code>drivers</code> folder, then run <code>dpinst-amd64.exe</code> on 64-bit Windows 10 or any Windows 11 PC.
-            Use <code>dpinst-x86.exe</code> only for 32-bit Windows 10. This is only required once.
-          </div>
-        </li>
-        <li>Connect your Nano ESP32 via USB directly to your PC or Mac (not through a USB hub) and double click the Nano's RST button to enter <strong>recovery mode</strong> (a <strong>GREEN</strong> LED will strobe when successful).</li>
-        <li>Click <strong>“Connect and Flash”</strong> and select <strong>“ARDUINO_NANO_NORA”</strong> (or <strong>“Nano ESP32 (bootloader)”</strong>). When <strong>“Authorize USB JTAG”</strong> appears, follow the instruction shown below the button.</li>
-        <li>After installation, continue with the <strong>“Setup”</strong> steps listed on GitHub.</li>
-      </ol>
+      <div id="instructionsWrap" class="hidden">
+        <ol id="installSteps" class="install-steps"></ol>
+      </div>
 
-      <button id="startButton" class="flash-button" disabled>Connect and Flash</button>
+      <button id="startButton" class="flash-button hidden" disabled>Connect and Flash</button>
       <button id="jtagButton" class="jtag-button hidden" type="button">Authorize USB JTAG</button>
       <p id="jtagInstructions" class="jtag-instructions hidden">Click <strong>“Authorize USB JTAG”</strong>, leave the chooser open, press RST on the Nano once, then select the USB JTAG device when it appears.</p>
     </section>
@@ -73,7 +80,7 @@
     </div>
   </main>
 
-  <script src="./config.js?v=dfu-rst-v1"></script>
-  <script type="module" src="./installer.js?v=windows-driver-step-v2"></script>
+  <script src="./config.js?v=xiao-board-select-v1"></script>
+  <script type="module" src="./installer.js?v=xiao-board-select-v1"></script>
 </body>
 </html>
