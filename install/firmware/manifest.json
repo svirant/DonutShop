@@ -3,12 +3,17 @@
   "name": "DonutShop v0.7.27",
   "published_at": "2026-09-20T00:33:09Z",
   "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.7.27",
-  "body": "**Mobile reliability/cleanup**\r\n- Fixed Remote Mirror button overlay responsiveness regression.\r\n- Reduced toast reconnect messages.",
+  "body": "**Mobile reliability/cleanup**\r\n- Fixed OSD Mirror button overlay responsiveness regression.\r\n- Reduced toast reconnect messages.",
   "prerelease": false,
   "full": {
     "name": "DonutShop_v0.7.27_full.bin",
     "size": 2200416,
     "sha256": "bdbea36d5a0b594c31207400d590ca969cf4a83d989480877f71b50043bef3f6"
+  },
+  "xiao_full": {
+    "name": "DonutShop_v0.7.27_XIAO_full.bin",
+    "size": 2202864,
+    "sha256": "6f7d95f7ece8e673efb678ad8d30b88bb90af30b151a5ed5ec5180e540fb4d7d"
   },
   "recovery": {
     "name": "nora_recovery.bin",
