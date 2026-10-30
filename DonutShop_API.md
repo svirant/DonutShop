@@ -1,15 +1,13 @@
 # DonutShop REST API Guide
 
-**Firmware:** DonutShop v0.7.25 or higher  
-**Base URL:** `http://donutshop.local`  
+**Firmware:** DonutShop v0.7.25 or higher
+**Base URL:** `http://donutshop.local`
 **Transport:** HTTP, port 80
 
 The DonutShop REST API provides access to RetroTink status, device information, serial commands, SD card directory listings, file downloads and uploads, file and folder deletion, folder creation, and file or folder move/rename operations.
 
 All public API access uses **port 80**.
-
 ## Endpoint Summary
-
 | Method | Endpoint | Purpose |
 |---|---|---|
 | `GET` | `/api/info` | Device and firmware information |
@@ -21,9 +19,7 @@ All public API access uses **port 80**.
 | `DELETE` | `/api/files/<path>` | Delete a file or empty folder |
 | `POST` | `/api/files/mkdir` | Create a folder |
 | `POST` | `/api/files/move` | Move or rename a file or folder |
-
 ---
-
 # Device Information
 
 ## `GET /api/info`
@@ -49,7 +45,6 @@ Example response:
   }
 }
 ```
-
 ### RetroTink fields
 
 | Field | Description |
@@ -71,42 +66,39 @@ Example response:
 ---
 
 # Current Status
-
 ## `GET /api/status`
 
 Returns the current RetroTink state and DonutShop connection information.
 
 Example response:
-
 ```json
 {
   "ok": true,
   "retrotink": {
-    "profile": "Example Profile",
+    "profile": "S1_SNES",
     "profile_path": "profile/SVS/S1_SNES.rt4",
-    "uptime_s": 12345,
+    "uptime_s": 54592,
     "baud": 2000000,
     "power_state": "awake",
-    "active_video_input": "S-Video",
-    "active_video_input_id": 3,
-    "active_video_output": "4K60",
-    "active_video_output_id": 6,
+    "active_video_input": "HDMI",
+    "active_video_input_id": 0,
+    "active_video_output": "2160p60",
+    "active_video_output_id": 0,
     "source": "cache",
-    "age_ms": 724
+    "age_ms": 862
   },
   "donutshop": {
-    "uptime_s": 54321,
-    "serial_type": "hd15",
+    "uptime_s": 61460,
+    "serial_type": "usb",
     "baud": 2000000,
     "retrotink_connected": true,
     "wifi_connected": true,
-    "ip": "192.168.1.100",
-    "rssi": -48,
-    "channel": 6
+    "ip": "10.0.1.100",
+    "rssi": -63,
+    "channel": 2
   }
 }
 ```
-
 DonutShop maintains a shared RetroTink status cache. A status snapshot up to approximately **4 seconds old** may be reused rather than sending another serial `status` command.
 
 The `source` field indicates whether the response came from the existing cache or from a newly requested status update.
@@ -114,7 +106,6 @@ The `source` field indicates whether the response came from the existing cache o
 `retrotink_connected` becomes false when the most recent valid RetroTink status information is more than approximately 10 seconds old.
 
 ---
-
 # Sending Commands
 
 ## `POST /api/command`
@@ -148,14 +139,47 @@ An optional `console` field can mirror the command and response into an open Web
 
 `console` defaults to `false`.
 
-### Successful response
+### Load a profile
+
+Profiles can be loaded through the same command endpoint:
+
+```json
+{
+  "command": "prof load SVS/S1_SNES.rt4"
+}
+```
+
+Profile paths are relative to the RetroTink `/profile/` directory. Do not include the `0:/profile/` prefix.
+
+For example:
+
+`0:/profile/SVS/S1_SNES.rt4`
+
+becomes:
+
+`prof load SVS/S1_SNES.rt4`
+
+A successful profile load returns:
 
 ```json
 {
   "ok": true,
-  "command": "status",
+  "command": "prof load SVS/S1_SNES.rt4",
   "responded": true,
-  "response": "...RetroTink response...",
+  "response": "[COM] prof load ok\n",
+  "truncated": false,
+  "console": false
+}
+```
+
+An unsuccessful profile load returns:
+
+```json
+{
+  "ok": true,
+  "command": "prof load SVS/S1_SNES.rt4",
+  "responded": true,
+  "response": "[COM] prof load fail\n",
   "truncated": false,
   "console": false
 }
@@ -164,11 +188,9 @@ An optional `console` field can mirror the command and response into an open Web
 The API accepts a single serial command per request. Commands are limited to 255 characters.
 
 Binary-session commands such as file transfer commands are intentionally not accepted through `/api/command`. File transfers should use `/api/files/...`.
-
 The captured command response is limited to approximately 4 KB. If the response exceeds the available capture buffer, `truncated` is set to `true`.
 
 ---
-
 # Files API
 
 The Files API is rooted directly at the RetroTink SD card.
@@ -196,17 +218,14 @@ folder/SNES Profile #1.rt4
 API path:
 /api/files/folder/SNES%20Profile%20%231.rt4
 ```
-
 In this example, spaces become `%20` and `#` becomes `%23`.
 
 ---
-
 # Directory Listing
 
 ## `GET /api/files/`
 
 Lists the root of the RetroTink SD card.
-
 ## `GET /api/files/<directory>`
 
 Lists the specified directory.
@@ -240,7 +259,6 @@ Example response:
   ]
 }
 ```
-
 ### Entry fields
 
 | Field | Description |
@@ -255,7 +273,6 @@ Example response:
 ---
 
 # File Download
-
 ## `GET /api/files/<file>`
 
 Returns the raw file contents.
@@ -274,7 +291,6 @@ Content-Length: <file size>
 X-DonutShop-Verification: crc16
 X-DonutShop-Transport: <transport>
 ```
-
 ### Download transport defaults
 
 | Connection | Baud | Default |
@@ -285,7 +301,6 @@ X-DonutShop-Transport: <transport>
 | HD-15 | 2,000,000 | no-ACK |
 
 The HD-15 2,000,000 no-ACK mode can only be used when the [baud mod](https://github.com/svirant/DonutDongle#2m-baud-mod) has been performed on your DonutDongle.
-
 ### ACK override
 
 HD-15 file downloads can override the default on an individual request.
@@ -321,7 +336,6 @@ hd15-noack
 ---
 
 # File Upload
-
 ## `PUT /api/files/<file>`
 
 Creates or overwrites a file on the RetroTink SD card.
@@ -352,7 +366,6 @@ A valid, non-zero `Content-Length` is required.
   "ms": 57854
 }
 ```
-
 ### Response fields
 
 | Field | Description |
@@ -363,7 +376,6 @@ A valid, non-zero `Content-Length` is required.
 | `frames` | Number of data frames transferred |
 | `transport` | Transfer mode used |
 | `ms` | Upload transfer time in milliseconds |
-
 ### Upload transport defaults
 
 | Connection | Upload mode |
@@ -392,7 +404,6 @@ DELETE /api/files/profile/SVS/S1_SNES.rt4
 ---
 
 # Create Folder
-
 ## `POST /api/files/mkdir`
 
 Creates a folder on the RetroTink SD card.
@@ -423,7 +434,6 @@ Moves or renames a file or folder on the RetroTink SD card.
 ```
 
 ---
-
 # Transfer Progress
 
 The public REST API does not require a separate progress/status endpoint.
@@ -431,7 +441,6 @@ The public REST API does not require a separate progress/status endpoint.
 For a download, the client can calculate progress using the number of response bytes received and the `Content-Length` header.
 
 For an upload, the client already knows the request `Content-Length` and how many body bytes it has transmitted. This allows the client to calculate percentage, transfer rate, elapsed time, and estimated time remaining locally.
-
 Reaching 100% of the request body means the entire file has been sent to DonutShop, but the client should still wait for the final HTTP response before considering the upload complete.
 
 A successful final response with:
@@ -445,7 +454,6 @@ A successful final response with:
 is the authoritative indication that the RetroTink file transfer completed successfully.
 
 ---
-
 # File Path Rules
 
 API file paths are relative to the SD card root.
@@ -464,9 +472,7 @@ The API rejects paths that attempt to escape or ambiguously traverse the SD root
 Paths beginning with `/` or `-`, paths containing backslashes or `:`, and paths longer than 255 characters are also rejected.
 
 ---
-
 # Common HTTP Responses
-
 | Status | Meaning |
 |---:|---|
 | `200` | Request completed successfully |
@@ -479,7 +485,6 @@ Paths beginning with `/` or `-`, paths containing backslashes or `:`, and paths 
 | `503` | RetroTink communication or serial write unavailable |
 | `504` | RetroTink response timed out |
 | `507` | DonutShop could not allocate the required transfer/listing memory |
-
 Error responses generally use:
 
 ```json
@@ -502,13 +507,10 @@ A failed PUT may also report how many bytes had been committed before the failur
 ---
 
 ---
-
 # No Experimental Firmware Update API
 
 A one-shot API endpoint for updating the connected RetroTink to the latest experimental firmware was considered, but is not currently implemented.
-
 The existing Experimental Firmware update flow in WebCtl is intentionally browser-assisted. The browser performs the heavier package work, including downloading the firmware ZIP, parsing it, extracting the required files, and orchestrating the staging process. DonutShop then handles the RetroTink file transfer and firmware-update commands.
-
 This split keeps the update process fast and avoids moving ZIP extraction and other heavier processing back onto the Nano, where the same work was previously slower and more resource-intensive.
 
 For that reason, firmware updating remains a WebCtl feature rather than a standalone REST API operation.
