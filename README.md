@@ -2,13 +2,15 @@
 is an ESP32-S3 + OTG adapter that allows you to manage your RetroTink 4K/CE over WiFi. Other features include gameID based profiles over http or HDMI metadata.<br />
 
 
-<p align="center"><img width="500" src="./images/3.JPG"></p><br />
+<p align="center"><img width="500" src="./images/3.JPG"></p>
 
-See it in action: https://youtu.be/ldbfFbKzjh8 <br>
+See it in action: https://youtu.be/ldbfFbKzjh8
 
-  - Note: In version v0.7.x you can still access this gameID only version at http://donutshop.local/gameid
+> [!TIP]
+> If DIY is not your thing. I have assembled versions available in my [Ko-fi](https://ko-fi.com/donutswdad/shop) shop that include a case.
 
 ## DonutShop API
+
 [Current Guide](https://github.com/svirant/DonutShop/blob/main/DonutShop_API.md)
 
 Base URL: http://donutshop.local
@@ -27,6 +29,7 @@ Base URL: http://donutshop.local
 - Additional info/status fields imminent
 
 ## DonutShop ft. RT4K WebCtl (work in progress v0.7.x+)
+
  - Requires RT4K v1.75+ experimental firmware, not the latest 1.9.6 stable firmware.
  - This version integrates the gameID functionality into the RT4K WebCtl internal test app. It's still very much a work in progress, but I wanted to share the experience thus far.
  - In a nutshell, with WebCtl on DonutShop, you gain:
@@ -44,24 +47,29 @@ Base URL: http://donutshop.local
 <br>
 
 ## 2 Types of Mobile Remotes
-<p align="left"><img width="250" src="./images/13.JPG">   <img width="250" src="./images/14.JPG"></p>
-<br>
+
+<p align="left">
+  <img src="./images/13.JPG" width="250" alt="">
+  <img src="./images/14.JPG" width="250" alt="">
+</p>
 
 ## Desktop View
 
-Dark Theme
-<p align="center"><img src="./images/5.JPG"></p>
-Glazed Theme
-<p align="center"><img src="./images/5c.JPG"><br />
-<p align="center"><img src="./images/6.JPG"><br />
-<p align="center"><img src="./images/7.JPG"><br />
-<p align="center"><img src="./images/8.JPG"><br />
-<p align="center"><img src="./images/9.JPG"><br />
-<p align="center"><img src="./images/10.JPG"><br />
-<p align="center"><img src="./images/11.JPG"><br />
-<p align="center"><img src="./images/12.JPG"><br /></p><br>
+<p align="left">Dark Theme<br>
+<img src="./images/5.JPG" width="850" alt=""></p>
+<p align="left">Glazed Theme<br>
+<img src="./images/5c.JPG" width="850" alt=""></p>
+
+<p align="left"><img src="./images/6.JPG" width="850" alt=""></p>
+<p align="left"><img src="./images/7.JPG" width="850" alt=""></p>
+<p align="left"><img src="./images/8.JPG" width="850" alt=""></p>
+<p align="left"><img src="./images/9.JPG" width="850" alt=""></p>
+<p align="left"><img src="./images/10.JPG" width="450" alt=""></p>
+<p align="left"><img src="./images/11.JPG" width="850" alt=""></p>
+<p align="left"><img src="./images/12.JPG" width="850" alt=""></p>
 
 ## Updates
+
   - "Glazed" is the new daytime theme alternative to the default "Dark" theme.
   - Firmware Installer only takes a few clicks.
   - WiP DonutShop ft. RT4K WebCtl now available to experience the new features of the RT4K v1.75+ firmware
@@ -80,6 +88,7 @@ Glazed Theme
       - Ex: http://10.0.1.10/gameid vs http://ps1digital.local/gameid 
 
 ## Parts used
+
 (links help support [RetroRGB!](https://retrorgb.com/))
   - **OTG Adapter:** The following were tested on 4/27/2026. Not all OTG adapters work.
      - [Jadebones USB C to USB OTG](https://amzn.to/4cRdskT)
@@ -96,9 +105,8 @@ Glazed Theme
   - **USB-A to C cable**
      - [Short USB A to USB C Cable](https://amzn.to/4qvE7cV)
 
- <br /><br />
-
 ## gameID devices currently supported
+
 | **Device**    | Supported | Notes |
 | ------------- | ------------- |------------- |
 |PS1Digital | yes, confirmed first hand | |
@@ -110,6 +118,7 @@ Glazed Theme
 | more on the way... |  
 
 ### LED activity
+
 | **Color**    | Blinking | On | Notes |
 | ------------- | ------------- |------------- |------------- |
 | 🟠 XIAO| WiFi active, querying gameID addresses. Longer blinks represent an unsuccessful query of gameID address. Usually a powered off console in the list. | Wifi not connected | XIAO has a single ORANGE led for status. Ignore the RED led as it only pertains to the not used battery status. |
@@ -119,11 +128,13 @@ Glazed Theme
 | 🔴 Nano| | Power| No way to control as it's hardwired in. May just need to cover with tape. |
 
 ## Flashing 
+
 1. Open the [DonutShop Firmware Installer](https://svirant.github.io/DonutShop/install/) in Brave/Chrome/Edge.
 2. Once complete, reconnect the USB cable of the device and continue **Setup** below...
 3. If you get an error, try the Alternative Flashing steps at the bottom of the page.
 
 ## Setup
+
 1. Upon reconnecting the USB cable, your board should **Successfully boot DonutShop** and leave you with an ORANGE led.
 2. With your computer or smartphone, join the broadcasted ```DonutShop_Setup``` WiFi to connect it to your home network.
     - You can now also change the default "donutshop" Hostname. Must follow the rules listed and will have .local appended automatically.
@@ -150,9 +161,11 @@ There are a multiple moving parts with this setup, and if you have issues, pleas
 The Web UI allows you to live update the Consoles and gameID table. You no longer have to reflash for changes. You can also now import and export your config if anything were to happen and you need to rebuild.
 
 ## WiFi setup
+
 **ONLY** compatible with **2.4GHz** WiFi APs. Configured during initial setup process. If you need to change SSID or password, "DonutShop_Setup" will automatically reappear after not being able to connect.
 
 ## [Advanced] Programming the Arduino Nano ESP32 with custom .ino changes
+
 I recommend the [Official Arduino IDE and guide](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started-ide-v2/) if you're unfamiliar with Arduinos. All .ino files used for programming are listed above. The following Libraries will also need to be added in order to Compile successfully.<br />
 - **Add Additional Boards**
   - In the Arduino IDE open up "Settings", find the section "Additional boards manager URLs:"
@@ -170,9 +183,8 @@ I recommend the [Official Arduino IDE and guide](https://docs.arduino.cc/softwar
 - USB Mode - "Debug mode (Hardware CDC)" / **Important that this is selected!**
 5. To flash the changes, select "Sketch" -> "Upload"
 
-<br />
-
 ## Thank you!
+
   - BIG Thanks goes to Mike Chi of RetroTink for early access to the documentation and most importantly the WebCtl test app that made this possible.
   - The RetroTink Discord for beta testing feedback.
   - Bob @ RetroRGB for always supporting and being an invaluable resource to the community.
@@ -193,6 +205,7 @@ If you are sure of these settings, and it still does not work, try the following
     Here is a video of the "usb only test" being performed: https://www.youtube.com/watch?v=XP7OSW7X0DQ
 
 ## Alternative Flashing Steps
+
 1. Open [ESP Tool](https://espressif.github.io/esptool-js/) in Chrome, Brave, or Edge
 2. Connect your XIAO / Nano ESP32 via USB directly to your PC or Mac (not through a usb-hub) and for Nano-based boards, double click the Reset button immediately following to enter **recovery mode** (a GREEN led will strobe when successful). For XIAO, hold down the Reset button while connected the usb-c cable.
 3. Clicking **Connect** opens up a selection menu and you should see something like (depending on OS and Nano brand) Nano ESP32, TinyUSB, or USB JTAG.
