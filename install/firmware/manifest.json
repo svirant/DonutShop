@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.1",
-  "name": "DonutShop v0.8.1",
-  "published_at": "2026-11-03T23:11:22Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.1",
-  "body": "- UI tweaks\r\n- **rollback firmware** now shows up to 100 previous Experimental firmwares.\r\n  - Allows you to jump to any version older or newer.\r\n  - v1.75.0 is oldest available for WebCtl compatibility",
+  "tag": "v0.8.2",
+  "name": "DonutShop v0.8.2",
+  "published_at": "2026-11-04T07:37:43Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.2",
+  "body": "- Dashboard cleanup of DonutShop Memory move remnants",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.1_full.bin",
-    "size": 2191136,
-    "sha256": "f56e1c2a5c997722be6fa5465b8ff88130ffa780d9fd3265aef51d0a88f90ed1"
+    "name": "DonutShop_v0.8.2_full.bin",
+    "size": 2191104,
+    "sha256": "cb34f959aaee7b1795d9264b4319321b1facffbc33028c13b351e7de5c27f600"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.1_XIAO_full.bin",
-    "size": 2188784,
-    "sha256": "0b52b61be2546a4a02b1c03bad98047505ebe9dad9a476415265a79a7edd7f16"
+    "name": "DonutShop_v0.8.2_XIAO_full.bin",
+    "size": 2188736,
+    "sha256": "42633f216da2dc4378eb880a92d5cfd3624eb871327e15e9609f6079f3f47ff7"
   },
   "recovery": {
     "name": "nora_recovery.bin",
