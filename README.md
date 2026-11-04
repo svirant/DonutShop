@@ -2,7 +2,7 @@
 is an ESP32-S3 + OTG adapter that allows you to manage your RetroTink 4K/CE over WiFi. Other features include gameID based profiles over http or HDMI metadata.<br />
 
 
-<p align="center"><img width="500" src="./images/3.JPG"></p>
+<p align="center"><img width="850" src="./images/3.JPG"></p>
 
 See it in action: https://youtu.be/ldbfFbKzjh8
 
