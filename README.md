@@ -1,8 +1,6 @@
 # DonutShop
-is an Arduino Nano ESP32 + OTG adapter that changes profiles for the RetroTink 4K based on gameID. Now also featuring WebCtl. <br />
+is an ESP32-S3 + OTG adapter that allows you to manage your RetroTink 4K/CE over WiFi. Other features include gameID based profiles over http or HDMI metadata.<br />
 
-<!-- <p align="center"><img src="./images/1.JPG"><br />
-<p align="center"><img src="./images/2.JPG"><br /> -->
 
 <p align="center"><img width="500" src="./images/3.JPG"></p><br />
 
@@ -43,8 +41,14 @@ Base URL: http://donutshop.local
       - Edit & Save .txt files in-browser for immediate changes to various features that use .txt files.
     - RetroTink "kitchen sink" Diagnostics page
     - Console to manually run commands
-
 <br>
+
+## 2 Types of Mobile Remotes
+<p align="left"><img width="250" src="./images/13.JPG">   <img width="250" src="./images/14.JPG"></p>
+<br>
+
+## Desktop View
+
 Dark Theme
 <p align="center"><img src="./images/5.JPG"></p>
 Glazed Theme
