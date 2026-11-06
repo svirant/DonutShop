@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.2",
-  "name": "DonutShop v0.8.2",
-  "published_at": "2026-11-04T07:37:43Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.2",
-  "body": "- Dashboard cleanup of DonutShop Memory move remnants",
+  "tag": "v0.8.3",
+  "name": "DonutShop v0.8.3",
+  "published_at": "2026-11-06T20:35:03Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.3",
+  "body": "- Remotes are more responsive and support holding down directional buttons to move quickly.\r\n   - Directional buttons are now 50% larger for ease of use. Matches the size of the OSD overlay buttons.\r\n   - Note: OSD Mirror does not refresh while directional buttons are being held.\r\n- Memory optimizations",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.2_full.bin",
-    "size": 2191104,
-    "sha256": "cb34f959aaee7b1795d9264b4319321b1facffbc33028c13b351e7de5c27f600"
+    "name": "DonutShop_v0.8.3_full.bin",
+    "size": 2203936,
+    "sha256": "9fd29d5d0c076415aa00d1edc8e66b9f0dff36644b4e57ba11f39f610359af9c"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.2_XIAO_full.bin",
-    "size": 2188736,
-    "sha256": "42633f216da2dc4378eb880a92d5cfd3624eb871327e15e9609f6079f3f47ff7"
+    "name": "DonutShop_v0.8.3_XIAO_full.bin",
+    "size": 2201536,
+    "sha256": "7fdbe37f09bb1a9d1fa4eb0bd0b2dd173507b20d1ccbad2c09f163644c725f86"
   },
   "recovery": {
     "name": "nora_recovery.bin",
