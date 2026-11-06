@@ -93,6 +93,7 @@ Base URL: http://donutshop.local
   - **OTG Adapter:** The following were tested on 4/27/2026. Not all OTG adapters work.
      - [Jadebones USB C to USB OTG](https://amzn.to/4cRdskT)
      - [USB C OTG Adapter, 2 in 1 USB-C to USB](https://a.co/d/07DvAKlc)
+     - UK/EU: [IVIVTOR USB-C OTG Cable Adapter](https://amzn.eu/d/05hKqeZZ)
      - IT: [IVIVTOR USB-C OTG Cable Adapter](https://www.amazon.it/dp/B0F8N12YQD) (tested on 8/24/26)
   - **Nano or XIAO ESP32:** pick one based on availability or WiFi performance.
      - [WaveShare Nano ESP32](https://amzn.to/45FE30D) or from [Aliexpress](https://s.click.aliexpress.com/e/_c3cHQg5V)
