@@ -7,13 +7,13 @@
   "prerelease": false,
   "full": {
     "name": "DonutShop_v0.8.3_full.bin",
-    "size": 2203936,
-    "sha256": "9fd29d5d0c076415aa00d1edc8e66b9f0dff36644b4e57ba11f39f610359af9c"
+    "size": 2203568,
+    "sha256": "57d74159ae9bb9ee2762158fe50f67d5a4626fe922b421f123d57e268b3360b3"
   },
   "xiao_full": {
     "name": "DonutShop_v0.8.3_XIAO_full.bin",
-    "size": 2201536,
-    "sha256": "7fdbe37f09bb1a9d1fa4eb0bd0b2dd173507b20d1ccbad2c09f163644c725f86"
+    "size": 2196192,
+    "sha256": "5dba19007c47360ed21a29061ea12205555ddc8e012389d04edca68d2e33352c"
   },
   "recovery": {
     "name": "nora_recovery.bin",
