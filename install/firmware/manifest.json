@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.3",
-  "name": "DonutShop v0.8.3",
-  "published_at": "2026-11-06T20:35:03Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.3",
-  "body": "- Remotes are more responsive and support holding down directional buttons to move quickly.\r\n   - Directional buttons are now 50% larger for ease of use. Matches the size of the OSD overlay buttons.\r\n   - Note: OSD Mirror does not refresh while directional buttons are being held.\r\n- Memory optimizations",
+  "tag": "v0.8.4",
+  "name": "DonutShop v0.8.4",
+  "published_at": "2026-11-10T18:35:13Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.4",
+  "body": "**MemCardPro**\r\n- MemCardPro gameID detection now also supports **WebUI v2** mode.\r\n   - Use a \"gameID Consoles\" Address of:\r\n      - mcp://IP-ADDRESS for WebUI v2\r\n      - http://IP-ADDRESS/api/currentState for Local WebUI\r\n\r\n**Mobile layout**\r\n- Settings and RT Diag collapsed by default for a cleaner look.\r\n- UI refinement\r\n\r\n**Misc**\r\n- New **Wake RetroTink on detected Profile Change** option in Settings / \"Profile Rules\".\r\n- ESP32 reboot / WebCtl reconnection process is more robust w/ faster load times and refreshes.\r\n- Settings / Profiles page is always available even when the RetroTink is asleep.\r\n- Fixed bugs related to:\r\n  - table column resize.\r\n  - Search not updating when a new file was created.",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.3_full.bin",
-    "size": 2203568,
-    "sha256": "57d74159ae9bb9ee2762158fe50f67d5a4626fe922b421f123d57e268b3360b3"
+    "name": "DonutShop_v0.8.4_full.bin",
+    "size": 1992000,
+    "sha256": "11a24c0b5633097b42b33f77e15c4f2426d72416373f64f73a730004b7ccfb40"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.3_XIAO_full.bin",
-    "size": 2201136,
-    "sha256": "25151bbfdbd04215559a33d0d6b4184dd58c6dee00af75a94392c6be315b6ff0"
+    "name": "DonutShop_v0.8.4_XIAO_full.bin",
+    "size": 1989584,
+    "sha256": "a13f2f5f6545abcac0cca095cb583afc894fac4ed2d8752d14ee7257c517e444"
   },
   "recovery": {
     "name": "nora_recovery.bin",
