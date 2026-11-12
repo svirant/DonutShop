@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.4",
-  "name": "DonutShop v0.8.4",
-  "published_at": "2026-11-10T18:35:13Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.4",
-  "body": "**MemCardPro**\r\n- MemCardPro gameID detection now also supports **WebUI v2** mode.\r\n   - Use a \"gameID Consoles\" Address of:\r\n      - mcp://IP-ADDRESS for WebUI v2\r\n      - http://IP-ADDRESS/api/currentState for Local WebUI\r\n\r\n**Mobile layout**\r\n- Settings and RT Diag collapsed by default for a cleaner look.\r\n- UI refinement\r\n\r\n**Misc**\r\n- New **Wake RetroTink on detected Profile Change** option in Settings / \"Profile Rules\".\r\n- ESP32 reboot / WebCtl reconnection process is more robust w/ faster load times and refreshes.\r\n- Settings / Profiles page is always available even when the RetroTink is asleep.\r\n- Fixed bugs related to:\r\n  - table column resize.\r\n  - Search not updating when a new file was created.",
+  "tag": "v0.8.5",
+  "name": "DonutShop v0.8.5",
+  "published_at": "2026-11-12T00:43:14Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.5",
+  "body": "- Experimental Firmware Updates / Rollback can show a False \"Error\" message starting with RetroTink Firmware 1.99.14 when updating.\r\n  - 1.99.14 changed its response to a \"fwup go \\<token>\" command. This update recognizes the old and new response.\r\n  - The Firmware still gets applied regardless, this just prevents the False Error. \r\n- \"Update Available\" badge for Experimental Firmware shows w/o having to manually refresh the page when returning to an existing WebCtl session. (if an update is available of course)",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.4_full.bin",
-    "size": 1992000,
-    "sha256": "11a24c0b5633097b42b33f77e15c4f2426d72416373f64f73a730004b7ccfb40"
+    "name": "DonutShop_v0.8.5_full.bin",
+    "size": 1997760,
+    "sha256": "138236822970952059867f0f25275609b741720a72688abd9b2248e5dd269ca7"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.4_XIAO_full.bin",
-    "size": 1989584,
-    "sha256": "a13f2f5f6545abcac0cca095cb583afc894fac4ed2d8752d14ee7257c517e444"
+    "name": "DonutShop_v0.8.5_XIAO_full.bin",
+    "size": 1995456,
+    "sha256": "110a563fa1ad6f0b4908a42580e15fd88581f3b03a94ceaaf2fbb108488a4faf"
   },
   "recovery": {
     "name": "nora_recovery.bin",
