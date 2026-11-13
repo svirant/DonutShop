@@ -36,6 +36,7 @@ Base URL: http://donutshop.local
     - Flash latest experimental firmware over Wi-Fi directly from Github
     - Remote + OSD
     - File Manager with bulk file operations including, cut/copy/paste/delete/download,drag & drop uploads.
+      - Search for files, folders, profiles. Available in Profile Pickers as well.
       - Load profiles by double-clicking on the filename, allowing you to quickly try out new profiles.
       - Save live profile to current directory with the option to change name
       - View .html files immediately in-browser. Great for reading various guides found on the SD Card image.
@@ -89,7 +90,7 @@ Base URL: http://donutshop.local
   - **USB-A to C cable**
      - [Short USB A to USB C Cable](https://amzn.to/4qvE7cV)
 
-## gameID devices currently supported
+## Game ID devices currently supported
 
 | **Device**    | Supported | Notes |
 | ------------- | ------------- |------------- |
@@ -97,14 +98,26 @@ Base URL: http://donutshop.local
 |N64Digital | yes, confirmed first hand | w/ Summercart64 or certain EverDrives|
 |MakeMHz XboxHD+ | yes, confirmed first hand	 | |
 |All RetroGEMs | yes | |
-| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | |
+| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | see notes below |
+| MiSTer FPGA | yes | see notes below |
 
 - MemCardPro gameID detection now also supports **WebUI v2** mode.
    - Use a "gameID Consoles" Address of:
       - ```mcp://IP-ADDRESS``` for WebUI v2
       - ```http://IP-ADDRESS/api/currentState``` for Local WebUI
+- MiSTer is now supported in gameID Consoles. mrext remote must be installed on your MiSTer.
+  - Supports Cores by using the core name: ex: "MegaDrive" and/or Games by using Core name and game file name with a | inbetween: ex: "MegaDrive|Streets of Rage 2 (USA)"
+  - You do not have to use the exact name as long as it contains enough characters to match.
+  - Recommend turning off "Auto Load DV1" if using HDMI DV1 for the time being or else it will override. A RetroTink bug fix will soon allow both to work together.
 
-### LED activity
+## HDMI Info Profiles
+
+Can load any "HDMI Input" profile based on HDMI SPD/VSIF metadata.
+Match on Product Description, Vendor Name, or Game ID with MakeMHz XboxHD+ and Pixel-FX mods.
+<p align="left"><img src="./images/15.JPG" width="850" alt=""></p>
+
+
+## LED activity
 
 | **Color**    | Blinking | On | Notes |
 | ------------- | ------------- |------------- |------------- |
