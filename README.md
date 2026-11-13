@@ -28,27 +28,27 @@ Base URL: http://donutshop.local
   - Body: `{"source": "profile/SVS/Old.rt4", "destination": "profile/SVS/New.rt4"}` 
 - Additional info/status fields imminent
 
-## DonutShop ft. RT4K WebCtl (work in progress v0.7.x+)
+## DonutShop ft. WebCtl
 
  - Requires RT4K v1.75+ experimental firmware, not the latest 1.9.6 stable firmware.
- - This version integrates the gameID functionality into the RT4K WebCtl internal test app. It's still very much a work in progress, but I wanted to share the experience thus far.
  - In a nutshell, with WebCtl on DonutShop, you gain:
-    - Dashboard of RT4K status, ability to change Input/Output
+    - Dashboard of RT4K statuses, ability to change Input/Output/Resolution/Modelines
     - Flash latest experimental firmware over Wi-Fi directly from Github
     - Remote + OSD
-    - Load profiles by double-clicking on the filename, allowing you to quickly try out new profiles.
-    - File Manager with bulk file operations including, copy/move/delete/download,drag & drop uploads.
+    - File Manager with bulk file operations including, cut/copy/paste/delete/download,drag & drop uploads.
       - Load profiles by double-clicking on the filename, allowing you to quickly try out new profiles.
       - Save live profile to current directory with the option to change name
-      - View .txt & .html files immediately in-browser. Great for reading various guides found on the SD Card image.
+      - View .html files immediately in-browser. Great for reading various guides found on the SD Card image.
       - Edit & Save .txt files in-browser for immediate changes to various features that use .txt files.
     - RetroTink "kitchen sink" Diagnostics page
-    - Console to manually run commands
+    - Profile Automation using gameID or HDMI metadata
+
 <br>
 
-## 2 Types of Mobile Remotes
+## Mobile View
 
 <p align="left">
+  <img src="./images/16.JPG" width="250" alt="">
   <img src="./images/13.JPG" width="250" alt="">
   <img src="./images/14.JPG" width="250" alt="">
 </p>
@@ -62,30 +62,13 @@ Base URL: http://donutshop.local
 
 <p align="left"><img src="./images/6.JPG" width="850" alt=""></p>
 <p align="left"><img src="./images/7.JPG" width="850" alt=""></p>
+<p align="left"><img src="./images/9a.JPG" width="850" alt=""></p>
 <p align="left"><img src="./images/8.JPG" width="850" alt=""></p>
 <p align="left"><img src="./images/9.JPG" width="850" alt=""></p>
-<p align="left"><img src="./images/10.JPG" width="450" alt=""></p>
 <p align="left"><img src="./images/11.JPG" width="850" alt=""></p>
-<p align="left"><img src="./images/12.JPG" width="850" alt=""></p>
-
-## Updates
-
-  - "Glazed" is the new daytime theme alternative to the default "Dark" theme.
-  - Firmware Installer only takes a few clicks.
-  - WiP DonutShop ft. RT4K WebCtl now available to experience the new features of the RT4K v1.75+ firmware
-  - .3mf added for printing a case.
-  - NEW Terminal to relay [Remote Control Commands](https://consolemods.org/wiki/AV:RetroTINK-4K#Remote_Control_Commands). Toggle **Keyboard Nav Mode** to navigate the RT4K interface with keyboard keys.
-  - New flash / setup method can now all be done via web browser.
-  - ALL settings are now configured in the Web UI.
-  - New Captive Portal for joining to your home network.
-  - New Settings page allows you to Update Firmware and Load S0 profile if all Consoles are off. 
-  - OTA updates now available. "donutshop" shows up as a Network port in Arduino IDE 2.x
-  - New Web UI!
-  - Detection rates have been sped up!
-    - Unpowered consoles that are DNS address based, timeout after 7 seconds. This is reduced to 2 seconds after a console's first power up.
-      - console DNS addresses will be automatically replaced by IP in order for the 2 second timeout to work.
-    - Quickest if IP address is used versus Domain address.
-      - Ex: http://10.0.1.10/gameid vs http://ps1digital.local/gameid 
+<p align="left"><img src="./images/15.JPG" width="850" alt=""></p>
+<p align="left"><img src="./images/12.JPG" width="450" alt=""></p>
+<p align="left"><img src="./images/10.JPG" width="450" alt=""></p>
 
 ## Parts used
 
@@ -110,20 +93,23 @@ Base URL: http://donutshop.local
 
 | **Device**    | Supported | Notes |
 | ------------- | ------------- |------------- |
-|PS1Digital | yes, confirmed first hand | |
-|N64Digital | yes, confirmed first hand | |
-|RetroGEM N64 | yes | |
-|RetroGEM PS1 | yes | |
-| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | MCP 2.0 firmware requires https instead of http. <br> MCP 3.0 firmware requires disabling "WebUI v2 (Beta)" access and then you can use the http method. Ex: http://10.0.1.52/api/currentState |
-| Fenrir ?| | |
-| more on the way... |  
+|PS1Digital | yes, confirmed first hand | w/ xStation|
+|N64Digital | yes, confirmed first hand | w/ Summercart64 or certain EverDrives|
+|MakeMHz XboxHD+ | yes, confirmed first hand	 | |
+|All RetroGEMs | yes | |
+| MemCardPro 2 | yes, for GameCube, PS1, & PS2 | |
+
+- MemCardPro gameID detection now also supports **WebUI v2** mode.
+   - Use a "gameID Consoles" Address of:
+      - ```mcp://IP-ADDRESS``` for WebUI v2
+      - ```http://IP-ADDRESS/api/currentState``` for Local WebUI
 
 ### LED activity
 
 | **Color**    | Blinking | On | Notes |
 | ------------- | ------------- |------------- |------------- |
-| 🟠 XIAO| WiFi active, querying gameID addresses. Longer blinks represent an unsuccessful query of gameID address. Usually a powered off console in the list. | Wifi not connected | XIAO has a single ORANGE led for status. Ignore the RED led as it only pertains to the not used battery status. |
-| 🟠 Nano| | Wifi not connected | If DonutShop cannot connect to its saved WiFi network during startup, DonutShop_Setup will appear so you can reconnect. |
+| 🟠 XIAO| WiFi active, querying gameID addresses. Longer blinks represent an unsuccessful query of gameID address. Usually a powered off console in the list. | WiFi Connected | XIAO has a single ORANGE led for status. Ignore the RED led as it only pertains to the not used battery status. |
+| 🟠 Nano| | WiFi not connected | If DonutShop cannot connect to its saved WiFi network during startup, DonutShop_Setup will appear so you can reconnect. |
 | 🔵 Nano| WiFi active, querying gameID addresses| Longer blinks represent an unsuccessful query of gameID address. Usually a powered off console in the list.| After initial power, no BLUE light means WiFi not found. |
 | 🟢 Nano| 1 second blink is gameID match found and SVS profile being sent to RT4K | |  | 
 | 🔴 Nano| | Power| No way to control as it's hardwired in. May just need to cover with tape. |
