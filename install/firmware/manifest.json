@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.5",
-  "name": "DonutShop v0.8.5",
-  "published_at": "2026-11-12T00:43:14Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.5",
-  "body": "- Experimental Firmware Updates / Rollback can show a False \"Error\" message starting with RetroTink Firmware 1.99.14 when updating.\r\n  - 1.99.14 changed its response to a \"fwup go \\<token>\" command. This update recognizes the old and new response.\r\n  - The Firmware still gets applied regardless, this just prevents the False Error. \r\n- \"Update Available\" badge for Experimental Firmware shows w/o having to manually refresh the page when returning to an existing WebCtl session. (if an update is available of course)",
+  "tag": "v0.8.6",
+  "name": "DonutShop v0.8.6",
+  "published_at": "2026-11-13T15:14:04Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.6",
+  "body": "**Remote**\r\n- Overall responsiveness improvement. \r\n- OSD Mirror now updates while directional buttons are being held.\r\n- Highlighted green text is much more visible.\r\n \r\n**Experimental Firmware Updates**\r\n- Simplified progress status and layout.\r\n\r\n**Misc**\r\n- \"RT System Stack\" (serial command: stack) info is now parsed correctly with RetroTink Firmware 1.99.14+\r\n- HTTP performance tweaks \r\n- IndexDB / Search tweaks",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.5_full.bin",
-    "size": 1997760,
-    "sha256": "138236822970952059867f0f25275609b741720a72688abd9b2248e5dd269ca7"
+    "name": "DonutShop_v0.8.6_full.bin",
+    "size": 2003872,
+    "sha256": "3931e0d2e5df7932899c0d5352da6308cf870425d73b5e9efbdd54e7e0cdf074"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.5_XIAO_full.bin",
-    "size": 1995456,
-    "sha256": "110a563fa1ad6f0b4908a42580e15fd88581f3b03a94ceaaf2fbb108488a4faf"
+    "name": "DonutShop_v0.8.6_XIAO_full.bin",
+    "size": 2001728,
+    "sha256": "fc1a9720ed0ff38db720db9bc8db07267d9b48160fb2a1809aca3bf45ecae084"
   },
   "recovery": {
     "name": "nora_recovery.bin",
