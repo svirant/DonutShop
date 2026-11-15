@@ -105,15 +105,16 @@ Base URL: http://donutshop.local
    - Use a "gameID Consoles" Address of:
       - ```mcp://IP-ADDRESS``` for WebUI v2
       - ```http://IP-ADDRESS/api/currentState``` for Local WebUI
-- MiSTer is now supported in gameID Consoles. mrext remote must be installed on your MiSTer.
+- MiSTer is now supported in gameID Consoles. **mrext remote** must be installed on your MiSTer.
+  - Use a "gameID Consoles" Address of: ```http://mister.local:8182/api/games/playing```
   - Supports Cores by using the core name: ex: "MegaDrive" and/or Games by using Core name and game file name with a | inbetween: ex: "MegaDrive|Streets of Rage 2 (USA)"
   - You do not have to use the exact name as long as it contains enough characters to match.
   - Recommend turning off "Auto Load DV1" if using HDMI DV1 for the time being or else it will override. A RetroTink bug fix will soon allow both to work together.
 
 ## HDMI Info Profiles
 
-Can load any "HDMI Input" profile based on HDMI SPD/VSIF metadata.
-Match on Product Description, Vendor Name, or Game ID with MakeMHz XboxHD+ and Pixel-FX mods.
+Load any "HDMI Input" profile based on HDMI SPD/VSIF metadata.
+Match on Product Description, Vendor Name, which most HDMI consoles currently have, or Game ID with MakeMHz XboxHD+ and Pixel-FX mods.
 <p align="left"><img src="./images/15.JPG" width="850" alt=""></p>
 
 
