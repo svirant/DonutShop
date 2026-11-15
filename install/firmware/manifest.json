@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.6",
-  "name": "DonutShop v0.8.6",
-  "published_at": "2026-11-13T15:14:04Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.6",
-  "body": "**Remote**\r\n- Overall responsiveness improvement. \r\n- OSD Mirror now updates while directional buttons are being held.\r\n- Highlighted green text is much more visible.\r\n \r\n**Experimental Firmware Updates**\r\n- Simplified progress status and layout.\r\n\r\n**Misc**\r\n- \"RT System Stack\" (serial command: stack) info is now parsed correctly with RetroTink Firmware 1.99.14+\r\n- HTTP performance tweaks \r\n- IndexDB / Search tweaks",
+  "tag": "v0.8.7",
+  "name": "DonutShop v0.8.7",
+  "published_at": "2026-11-15T18:57:37Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.7",
+  "body": "**WebCtl**\r\n- Toast message maintenance. Some were interfering with mobile remotes upon reconnect.\r\n- UI tweaks\r\n\r\n**Misc**\r\n- Memory optimizations.\r",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.6_full.bin",
-    "size": 2003872,
-    "sha256": "3931e0d2e5df7932899c0d5352da6308cf870425d73b5e9efbdd54e7e0cdf074"
+    "name": "DonutShop_v0.8.7_full.bin",
+    "size": 1999008,
+    "sha256": "1d2040331c23869fef5de74751455453037b727fdd822074c4be76ed7438d705"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.6_XIAO_full.bin",
-    "size": 2001728,
-    "sha256": "fc1a9720ed0ff38db720db9bc8db07267d9b48160fb2a1809aca3bf45ecae084"
+    "name": "DonutShop_v0.8.7_XIAO_full.bin",
+    "size": 1996752,
+    "sha256": "d2be36ad40214fbd6d41a65d963d8c9b92f02fc73b4c9c5660efdf084b0ec772"
   },
   "recovery": {
     "name": "nora_recovery.bin",
