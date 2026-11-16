@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.7",
-  "name": "DonutShop v0.8.7",
-  "published_at": "2026-11-15T18:57:37Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.7",
-  "body": "**WebCtl**\r\n- Toast message maintenance. Some were interfering with mobile remotes upon reconnect.\r\n- UI tweaks\r\n\r\n**Misc**\r\n- Memory optimizations.\r",
+  "tag": "v0.8.8",
+  "name": "DonutShop v0.8.8",
+  "published_at": "2026-11-16T21:00:49Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.8",
+  "body": "**Experimental Firmware hotfix**\r\n- Added fallback sources of RetroTink firmware and metadata.\r\n- For faster copies, change Input to a non-HDMI source and hide the OSD.",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.7_full.bin",
-    "size": 1999008,
-    "sha256": "1d2040331c23869fef5de74751455453037b727fdd822074c4be76ed7438d705"
+    "name": "DonutShop_v0.8.8_full.bin",
+    "size": 2003440,
+    "sha256": "f0effb4956b2fcbb60eba77ad24cc0c5b9861a8011b8b4d539ddf488d5181488"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.7_XIAO_full.bin",
-    "size": 1996752,
-    "sha256": "d2be36ad40214fbd6d41a65d963d8c9b92f02fc73b4c9c5660efdf084b0ec772"
+    "name": "DonutShop_v0.8.8_XIAO_full.bin",
+    "size": 2001104,
+    "sha256": "ef3aae290c0fcde5a75542063ace3da875d1407cf6e16019bd37e0b4cce3a496"
   },
   "recovery": {
     "name": "nora_recovery.bin",
