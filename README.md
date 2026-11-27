@@ -100,7 +100,17 @@ Base URL: http://donutshop.local
 |All RetroGEMs | yes | |
 | MemCardPro 2 | yes, for GameCube, PS1, & PS2 | see notes below |
 | MiSTer FPGA | yes | see notes below |
+| sd2snes+ Link (FXPAK PRO) | yes | see notes below |
 
+- sd2snes+ Link (FXPAK PRO) is supported in gameID Consoles.
+  - Use a "gameID Consoles" Address of: ```http://IP-ADDRESS/link/info```
+  - The Link board has its own power and stays online when the SNES is off, so a successful connection alone does not mean a game is running. DonutShop reads the `cart` and `rom` fields of the `/link/info` response to tell the SNES states apart:
+    - **SNES off, or cart not linked** (`cart` is `false`): the console is treated as off, the same as a console that stops answering. The next active console takes over, or the profile is reset if all consoles are off.
+    - **SNES on, FXPAK PRO menu** (`cart` is `true`, `rom` is `/sd2snes/m3nu.bin`): the gameID is `SNES-MENU`.
+    - **SNES on, game running** (`cart` is `true`, `rom` is the path of the loaded ROM): the gameID is the ROM file name without folder or extension: ex: `New Super Mario Land (J) (V1.3)`
+  - A game counts as loaded as soon as the FXPAK PRO boots a ROM from the menu. Going back to the menu changes the gameID back to `SNES-MENU`, and powering off the SNES marks the console as off.
+  - Add the gameIDs to the gameDB with the profile you want for each, ex: `SNES-MENU` for the menu and `New Super Mario Land (J) (V1.3)` for that game. If no gameDB entry matches, the console's default profile is used when "No Match Profile" is enabled, otherwise the profile is not changed.
+  - Tested with sd2snes+ Link firmware 0.37.7 and FXPAK PRO firmware 3.0b35.
 - MemCardPro gameID detection now also supports **WebUI v2** mode.
    - Use a "gameID Consoles" Address of:
       - ```mcp://IP-ADDRESS``` for WebUI v2

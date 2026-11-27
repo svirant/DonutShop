@@ -605,38 +605,45 @@ void readGameID(){ // queries addresses in "consoles" array for gameIDs
         else http.begin(consoles[i].Address);
         analogWrite(LED_BLUE,222);
         int httpCode = http.GET();             // start connection and send HTTP header
-        if(httpCode > 0 || httpCode == -11){   // httpCode will be negative on error, let the read error slide...
+        bool consoleOff = !(httpCode > 0 || httpCode == -11); // httpCode will be negative on error, let the read error slide...
+        if(!consoleOff){
           if(httpCode == HTTP_CODE_OK){        // console is healthy // HTTP header has been sent and Server response header has been handled
             consoles[i].Address = replaceDomainWithIP(consoles[i].Address); // replace Domain with IP in consoles array. this allows setConnectTimeout to be honored
             payload = http.getString();        
             JsonDocument doc;
             DeserializationError error = deserializeJson(doc, payload);
             if(!error){ // If the response is JSON, continue
-              if(!doc["gameID"].isNull()) {  // If payload contains gameID, 
+              if(doc["link"] == "sd2snes-link"){ // sd2snes+ Link (FXPAK PRO) /link/info, the Link board stays powered when the SNES is off
+                if(doc["cart"].as<bool>()) payload = sd2snesGameID(doc["rom"].as<String>()); // SNES on, use running ROM as gameID
+                else consoleOff = true;                                                      // SNES off / no cart link, same as a console that does not answer
+              }
+              else if(!doc["gameID"].isNull()) {  // If payload contains gameID, 
                 payload = doc["gameID"].as<String>(); // reset payload to it's value
               }
             }
-            result = fetchGameIDProf(payload,consoles[i].DefaultProf);
-            consoles[i].On = 1;
-            if(consoles[i].Prof != result && result != -1){ // gameID found for console, set as King, unset previous King, send profile change 
-              consoles[i].Prof = result;
-              consoles[i].King = 1;
-              uint8_t prevOrder = consoles[i].Order;
-              for(int j=0;j < consolesSize;j++){ // set Order, set previous King to 0
-                if(j == i){
-                  consoles[j].Order = 0;
-                  consoles[j].King = 1;
+            if(!consoleOff){
+              result = fetchGameIDProf(payload,consoles[i].DefaultProf);
+              consoles[i].On = 1;
+              if(consoles[i].Prof != result && result != -1){ // gameID found for console, set as King, unset previous King, send profile change
+                consoles[i].Prof = result;
+                consoles[i].King = 1;
+                uint8_t prevOrder = consoles[i].Order;
+                for(int j=0;j < consolesSize;j++){ // set Order, set previous King to 0
+                  if(j == i){
+                    consoles[j].Order = 0;
+                    consoles[j].King = 1;
+                  }
+                  else{
+                    consoles[j].King = 0;
+                    if(consoles[j].Order < prevOrder) consoles[j].Order++;
+                  }
                 }
-                else{
-                  consoles[j].King = 0;
-                  if(consoles[j].Order < prevOrder) consoles[j].Order++;
-                }
+                sendProfile(consoles[i].Prof,GAMEID1,0);
               }
-              sendProfile(consoles[i].Prof,GAMEID1,0);
             }
-          } 
-        } // end of if(httpCode > 0 || httpCode == -11)
-        else{ // console is off, set attributes to 0, find lowest Order console that is On, set as King, send profile
+          }
+        } // end of if(!consoleOff)
+        if(consoleOff){ // console is off, set attributes to 0, find lowest Order console that is On, set as King, send profile
           consoles[i].On = 0;
           consoles[i].Prof = 0;
           if(consoles[i].King == 1){
@@ -695,6 +702,15 @@ void readGameID(){ // queries addresses in "consoles" array for gameIDs
     prevGameTime = 0;
   }
 }  // end of readGameID()
+
+String sd2snesGameID(String rom){ // sd2snes+ Link: "rom" is the path of the running ROM, convert it into a gameID
+  if(rom.endsWith("m3nu.bin")) return "SNES-MENU"; // FXPAK PRO menu, no game running
+  int slash = rom.lastIndexOf('/');
+  if(slash >= 0) rom = rom.substring(slash + 1);   // remove folders
+  int dot = rom.lastIndexOf('.');
+  if(dot > 0) rom = rom.substring(0,dot);          // remove extension
+  return rom;
+} // end of sd2snesGameID()
 
 uint8_t readAMstate(String& sinput, uint8_t size){
 
