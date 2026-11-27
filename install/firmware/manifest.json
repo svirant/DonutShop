@@ -1,19 +1,19 @@
 {
-  "tag": "v0.8.8",
-  "name": "DonutShop v0.8.8",
-  "published_at": "2026-11-16T21:00:49Z",
-  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.8",
-  "body": "**Experimental Firmware hotfix**\r\n- Added fallback sources of RetroTink firmware and metadata.\r\n- For faster copies, change Input to a non-HDMI source and hide the OSD.",
+  "tag": "v0.8.9",
+  "name": "DonutShop v0.8.9",
+  "published_at": "2026-11-27T21:01:04Z",
+  "html_url": "https://github.com/svirant/DonutShop/releases/tag/v0.8.9",
+  "body": "**TV Control**\r\n- Currently supports LG webOS TVs over the Network.\r\n- Power On supported by Wake On LAN packet sent when MAC Address provided.\r\n  - On your LG TV, Enable: Settings → All Settings → Connection → Mobile Connection Management → TV On With Mobile → Turn On via Wi-Fi. \r\n  - Also Enable \"Quick Start+\" for faster network wake-up.\r\n  - Power On / Wake On LAN may not work depending on your home network setup.\r\n- Basic remote controls such as d-pad, input selection, volume control, home, settings.\r\n- When enabled, shows up in the upper right top bar with a \"TV\" button.\r\n- Sony Bravia support pending... \r\n\r\n**Automation**\r\n- With TV Control you can fully utilize the \"On detected Profile Change...\" setting to:\r\n  - Wake RetroTink\r\n  - Power On TV with option to change HDMI input on TV\r\n  - Do Both",
   "prerelease": false,
   "full": {
-    "name": "DonutShop_v0.8.8_full.bin",
-    "size": 2003440,
-    "sha256": "f0effb4956b2fcbb60eba77ad24cc0c5b9861a8011b8b4d539ddf488d5181488"
+    "name": "DonutShop_v0.8.9_full.bin",
+    "size": 2130816,
+    "sha256": "2ee219c8411bc3d85abb25d6c10c002de8f3208304ee74448f411ab73571c368"
   },
   "xiao_full": {
-    "name": "DonutShop_v0.8.8_XIAO_full.bin",
-    "size": 2001104,
-    "sha256": "ef3aae290c0fcde5a75542063ace3da875d1407cf6e16019bd37e0b4cce3a496"
+    "name": "DonutShop_v0.8.9_XIAO_full.bin",
+    "size": 2129040,
+    "sha256": "168e6d3c3d9c0c2468d0a6b29ecb588aad7d810ee83de92ba598de27cc1c0801"
   },
   "recovery": {
     "name": "nora_recovery.bin",
